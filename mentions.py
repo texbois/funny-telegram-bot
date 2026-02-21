@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Application, CallbackContext, CommandHandler
 import redis_db
 from utils import in_whitelist
 import logging
@@ -45,5 +45,5 @@ async def mentions(update: Update, context: CallbackContext):
     await update.message.reply_text(message, do_quote=False)
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler(("mentions", "m", "opinionstats", "os"), mentions))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler(("mentions", "m", "opinionstats", "os"), mentions))

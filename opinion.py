@@ -1,7 +1,7 @@
 import logging
 import logging.handlers
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CallbackContext, CommandHandler
 import re
 import random
 import redis_db
@@ -111,14 +111,14 @@ async def opinion(update: Update, context: CallbackContext, user_input, previous
         else:
             await update.message.reply_text(f"Я ничего не знаю о \"{user_input}\" >_<", do_quote=False)
         return
-    
+
     if again_setter:
         again_setter(lambda: opinion(update, context, user_input, previous_results + [result.lower()], from_user_id))
     await update.message.reply_text(result, do_quote=False)
 
 
-def subscribe(u: Updater, _again_setter):
-    u.dispatcher.add_handler(CommandHandler(("opinion", "o"), handle_opinion))
-    u.dispatcher.add_handler(CommandHandler(("opinionof", "oo", "oof"), handle_opinion_of))
+def subscribe(a: Application, _again_setter):
+    a.add_handler(CommandHandler(("opinion", "o"), handle_opinion))
+    a.add_handler(CommandHandler(("opinionof", "oo", "oof"), handle_opinion_of))
     global again_setter
     again_setter = _again_setter

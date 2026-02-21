@@ -1,12 +1,13 @@
-from telegram import ParseMode, Update
-from telegram.ext import Updater, CommandHandler
+from telegram import Update
+from telegram.ext import Application, CallbackContext, CommandHandler
+from telegram.constants import ParseMode
 from _secrets import jerk_aliases, lucky_numbers
 import random
 import redis_db
 from utils import in_whitelist
 from datetime import datetime, timedelta, time
 import logging
-from time import sleep
+import asyncio
 
 logger = logging.getLogger(__name__)
 r = redis_db.connect()
@@ -93,9 +94,9 @@ async def jerk_roll(update: Update, context: CallbackContext):
     r.hincrby(JERKS, winner_id, 1)
 
     await update.message.reply_text(f"Выбираю {get_daily_jerk_word()[1]} на сегодня", do_quote=False)
-    sleep(1.5)
+    await asyncio.sleep(1.5)
     await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), do_quote=False)
-    sleep(1.5)
+    await asyncio.sleep(1.5)
     await update.message.reply_text(f"А вот и победитель — @{winner_username}!", do_quote=False)
     logger.info(f'  WINNER for {cur_datetime_str} is {winner_id}: {winner_username}')
     return
@@ -135,10 +136,10 @@ async def get_jerk_regs(update: Update, context: CallbackContext):
     await update.message.reply_text(f"{message}", do_quote=False)
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler("reg", jerk_reg))
-    u.dispatcher.add_handler(CommandHandler("unreg", jerk_unreg))
-    u.dispatcher.add_handler(CommandHandler("jerk", jerk_roll))
-    u.dispatcher.add_handler(CommandHandler("jerkstats", get_jerk_stats))
-    u.dispatcher.add_handler(CommandHandler("jerkall", get_jerk_regs))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler("reg", jerk_reg))
+    a.add_handler(CommandHandler("unreg", jerk_unreg))
+    a.add_handler(CommandHandler("jerk", jerk_roll))
+    a.add_handler(CommandHandler("jerkstats", get_jerk_stats))
+    a.add_handler(CommandHandler("jerkall", get_jerk_regs))
     pass

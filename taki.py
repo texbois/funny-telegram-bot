@@ -3,7 +3,7 @@ from collections import deque
 from dataclasses import dataclass
 from telegram import CallbackQuery, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import RetryAfter
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 from utils import in_whitelist
 from _secrets import taki_suspects
 import redis_db
@@ -328,9 +328,9 @@ async def try_edit(query: CallbackQuery, game: GameState, reply_markup) -> bool:
         return True
 
 
-def subscribe(u: Updater, _again_setter):
-    u.dispatcher.add_handler(CommandHandler(("taki"), takistart))
-    u.dispatcher.add_handler(CommandHandler(("takistats"), takistats))
-    u.dispatcher.add_handler(CallbackQueryHandler(on_taki_action, pattern="^t_"))
+def subscribe(a: Application, _again_setter):
+    a.add_handler(CommandHandler(("taki"), takistart))
+    a.add_handler(CommandHandler(("takistats"), takistats))
+    a.add_handler(CallbackQueryHandler(on_taki_action, pattern="^t_"))
     global again_setter
     again_setter = _again_setter

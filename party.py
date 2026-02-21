@@ -1,5 +1,5 @@
-from telegram import ParseMode, Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 import redis_db
 from utils import in_whitelist
 from datetime import datetime, timedelta, time
@@ -244,17 +244,17 @@ async def on_join_button_press(update: Update, ctx):
 
 # Ideally there needs to be 1 common handler for all commands that incapsulates parsing message, whitelisting, daily reset
 #  and other non-command-related stuff.
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler("partycreate", party_create))
-    u.dispatcher.add_handler(CommandHandler("partylist", party_list))
-    u.dispatcher.add_handler(CommandHandler(("party", "partyjoin"), party_join))
-    u.dispatcher.add_handler(CommandHandler("partydelete", party_delete)) #not tested
-    u.dispatcher.add_handler(CommandHandler("partypingunregister", party_ping_unregister)) #not tested
-    u.dispatcher.add_handler(CommandHandler("partyleave", party_leave)) #not tested
-    u.dispatcher.add_handler(CommandHandler("partyping", party_ping)) #not tested
-    u.dispatcher.add_handler(CommandHandler("partypinginvite", party_ping_invite)) #not tested
-    u.dispatcher.add_handler(CommandHandler("partyinfo", party_info)) #not tested
-    u.dispatcher.add_handler(CallbackQueryHandler(on_join_button_press, pattern="^join_party"))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler("partycreate", party_create))
+    a.add_handler(CommandHandler("partylist", party_list))
+    a.add_handler(CommandHandler(("party", "partyjoin"), party_join))
+    a.add_handler(CommandHandler("partydelete", party_delete)) #not tested
+    a.add_handler(CommandHandler("partypingunregister", party_ping_unregister)) #not tested
+    a.add_handler(CommandHandler("partyleave", party_leave)) #not tested
+    a.add_handler(CommandHandler("partyping", party_ping)) #not tested
+    a.add_handler(CommandHandler("partypinginvite", party_ping_invite)) #not tested
+    a.add_handler(CommandHandler("partyinfo", party_info)) #not tested
+    a.add_handler(CallbackQueryHandler(on_join_button_press, pattern="^join_party"))
 
 
 # ----------------- Helpers functions for readability ---------------

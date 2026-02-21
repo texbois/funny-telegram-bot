@@ -1,7 +1,7 @@
 import logging
 import logging.handlers
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CallbackContext, CommandHandler
 import re
 import random
 import redis_db
@@ -90,5 +90,5 @@ async def chalice(update: Update, context: CallbackContext, user_input):
         await update.message.reply_text(reply, do_quote=False)
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler(("chalice", "cup", "c"), handle_chalice))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler(("chalice", "cup", "c"), handle_chalice))
