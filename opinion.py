@@ -19,7 +19,7 @@ async def handle_opinion(update: Update, context: CallbackContext):
     logger.info(f"[opinion] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
-        await update.message.reply_text("О чем ты хотел узнать мое мнение?", quote=True)
+        await update.message.reply_text("О чем ты хотел узнать мое мнение?", do_quote=True)
         return
     user_input = match.group(1)
     await opinion(update, context, user_input, [], None)
@@ -36,7 +36,7 @@ async def handle_opinion_of(update: Update, context: CallbackContext):
             user_id = update.message.reply_to_message.from_user.id
             user_input = match.group(1)
         else:
-            await update.message.reply_text("Первым параметром идет имя человека, а потом топик, про который хочешь узнать мнение. Ничему тебя в школе не учили?", quote=True)
+            await update.message.reply_text("Первым параметром идет имя человека, а потом топик, про который хочешь узнать мнение. Ничему тебя в школе не учили?", do_quote=True)
             return
     else:
         user_name = match.group(1)
@@ -52,11 +52,11 @@ async def handle_opinion_of(update: Update, context: CallbackContext):
         kansou = random.choice(["Хмм...", "Нуу...", "", "Эээ...", "🤔"])
         results = [("Да ничего я не думаю об этом ._.", 25), ("Да мне как-то все равно...", 25), ("Думаю это супер! ❤️", 80), ("It's ok I guess...", 60), ("Мне нравится!", 100), ("Крутая вещь! 🔥", 30), ("Мне не очень нравится...", 80), ("Такое себе...", 30), ("Это моя самая любимая вещь! 🔥", 10), ("Я ненавижу это! 😡", 10), ("Это худшее, что когда либо было изобретено человечеством", 1),  ("Эта самая лучшая вещь во вселенной!", 1),]
         res = my_random.choices([x for x, w in results], weights=[w for x, w in results])[0]
-        await update.message.reply_text(f"{intro} {kansou}\n{res}", quote=False)
+        await update.message.reply_text(f"{intro} {kansou}\n{res}", do_quote=False)
         return
 
     if user_id is None:
-        await update.message.reply_text(f"\"{user_name}\"? Не припоминаю таких", quote=True)
+        await update.message.reply_text(f"\"{user_name}\"? Не припоминаю таких", do_quote=True)
         return
     await opinion(update, context, user_input, [], user_id)
 
@@ -103,18 +103,18 @@ async def opinion(update: Update, context: CallbackContext, user_input, previous
 
     if result is None:
         if len(previous_results) > 0 and from_user_id is None:
-            await update.message.reply_text(f"Я уже все высказал, что я думаю о \"{user_input}\"", quote=False)
+            await update.message.reply_text(f"Я уже все высказал, что я думаю о \"{user_input}\"", do_quote=False)
         elif len(previous_results) > 0 and from_user_id is not None:
-            await update.message.reply_text(f"Я уже все передал, что {redis_db.get_username_by_id(from_user_id)} думает о \"{user_input}\"", quote=False)
+            await update.message.reply_text(f"Я уже все передал, что {redis_db.get_username_by_id(from_user_id)} думает о \"{user_input}\"", do_quote=False)
         elif from_user_id is not None:
-            await update.message.reply_text(f"Кажется {redis_db.get_username_by_id(from_user_id)} ничего не думает о \"{user_input}\" x_x", quote=False)
+            await update.message.reply_text(f"Кажется {redis_db.get_username_by_id(from_user_id)} ничего не думает о \"{user_input}\" x_x", do_quote=False)
         else:
-            await update.message.reply_text(f"Я ничего не знаю о \"{user_input}\" >_<", quote=False)
+            await update.message.reply_text(f"Я ничего не знаю о \"{user_input}\" >_<", do_quote=False)
         return
     
     if again_setter:
         again_setter(lambda: opinion(update, context, user_input, previous_results + [result.lower()], from_user_id))
-    await update.message.reply_text(result, quote=False)
+    await update.message.reply_text(result, do_quote=False)
 
 
 def subscribe(u: Updater, _again_setter):

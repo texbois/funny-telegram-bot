@@ -35,11 +35,11 @@ async def jerk_reg(update: Update, context: CallbackContext):
     count = r.scard(JERKS_REG_SET)
     redis_db.update_user_data(update.message.from_user)
     if already_register:
-        await update.message.reply_text(f"@{reg_user_name}, ты уже участник этой клоунады", quote=False)
+        await update.message.reply_text(f"@{reg_user_name}, ты уже участник этой клоунады", do_quote=False)
         return
     # set user id and username
     r.sadd(JERKS_REG_SET, reg_user_id)
-    await update.message.reply_text(f"@{reg_user_name}, теперь ты участвуешь в лотерее вместе с {count} другими {get_daily_jerk_word()[3]}", quote=False)
+    await update.message.reply_text(f"@{reg_user_name}, теперь ты участвуешь в лотерее вместе с {count} другими {get_daily_jerk_word()[3]}", do_quote=False)
 
 
 async def jerk_unreg(update: Update, context: CallbackContext):
@@ -50,10 +50,10 @@ async def jerk_unreg(update: Update, context: CallbackContext):
     reg_user_name = update.message.from_user.username
     already_register = r.sismember(JERKS_REG_SET, reg_user_id)
     if not already_register:
-        await update.message.reply_text(f"@{reg_user_name}, ты и так не регистрировался", quote=False)
+        await update.message.reply_text(f"@{reg_user_name}, ты и так не регистрировался", do_quote=False)
         return
     r.srem(JERKS_REG_SET, reg_user_id)
-    await update.message.reply_text(f"Правильное решение, @{reg_user_name}. Вычеркнул тебя из списка", quote=False)
+    await update.message.reply_text(f"Правильное решение, @{reg_user_name}. Вычеркнул тебя из списка", do_quote=False)
 
 
 async def jerk_roll(update: Update, context: CallbackContext):
@@ -81,22 +81,22 @@ async def jerk_roll(update: Update, context: CallbackContext):
             await update.message.reply_text(f"Сегодняшний {get_daily_jerk_word()[0]} дня: <b>{cur_jerk_username}</b>.\n"
                                       f"Следующий запуск будет доступен через: "
                                       f"{time_to_next_h} ч. и {time_to_next_m} м.",
-                                      quote=False, parse_mode=ParseMode.HTML)
+                                      do_quote=False, parse_mode=ParseMode.HTML)
             return
     players = list(r.smembers(JERKS_REG_SET))
     if (len(players) == 0):
-        await update.message.reply_text("А че вы роллить собрались? Никто не зарегистрировался", quote=True)
+        await update.message.reply_text("А че вы роллить собрались? Никто не зарегистрировался", do_quote=True)
     winner_id = random.choice(players)
     winner_username = redis_db.get_username_by_id(winner_id)
     r.hset(JERKS_META, 'last_jerk', winner_id)
     r.hset(JERKS_META, 'roll_time', cur_datetime_str)
     r.hincrby(JERKS, winner_id, 1)
 
-    await update.message.reply_text(f"Выбираю {get_daily_jerk_word()[1]} на сегодня", quote=False)
+    await update.message.reply_text(f"Выбираю {get_daily_jerk_word()[1]} на сегодня", do_quote=False)
     sleep(1.5)
-    await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), quote=False)
+    await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), do_quote=False)
     sleep(1.5)
-    await update.message.reply_text(f"А вот и победитель — @{winner_username}!", quote=False)
+    await update.message.reply_text(f"А вот и победитель — @{winner_username}!", do_quote=False)
     logger.info(f'  WINNER for {cur_datetime_str} is {winner_id}: {winner_username}')
     return
 
@@ -117,7 +117,7 @@ async def get_jerk_stats(update: Update, context: CallbackContext):
     for k, v in dict(sorted(jerks_dict.items(), key=lambda item: item[1], reverse=True)).items():
         message += f"{i}. {k} — {v} {lucky_numbers.get(v, '')}\n"
         i += 1
-    await update.message.reply_text(f"{message}", quote=False)
+    await update.message.reply_text(f"{message}", do_quote=False)
 
 
 async def get_jerk_regs(update: Update, context: CallbackContext):
@@ -125,14 +125,14 @@ async def get_jerk_regs(update: Update, context: CallbackContext):
         return
     players = r.smembers(JERKS_REG_SET)
     if (len(players) == 0):
-        await update.message.reply_text(f"Никто не зарегистрировался на {get_daily_jerk_word()[1]} дня...", quote=False)
+        await update.message.reply_text(f"Никто не зарегистрировался на {get_daily_jerk_word()[1]} дня...", do_quote=False)
         return
     message = "Вот все известные мне персонажи:\n"
     i = 1
     for player in players:
         message += f"{i}. {redis_db.get_username_by_id(player)}\n"
         i += 1
-    await update.message.reply_text(f"{message}", quote=False)
+    await update.message.reply_text(f"{message}", do_quote=False)
 
 
 def subscribe(u: Updater):
