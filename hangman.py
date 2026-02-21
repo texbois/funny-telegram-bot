@@ -138,11 +138,11 @@ def get_hangman_keyboard(guesses, creation_phase: bool, lang: str) -> InlineKeyb
     return InlineKeyboardMarkup(keyboard)
 
 
-def start_hangman(update: Update, context: CallbackContext, lang: str):
+async def start_hangman(update: Update, context: CallbackContext, lang: str):
     if (not in_whitelist(update)):
         return
     new_game_state = {"message_id": "", "answer": "", "guesses": [], "incorrect_guesses": 0, "last_action": "Игра началась!\n", "last_user_id": None, "creator_id": update.message.from_user.id, "creation": True, "l": lang}
-    message = update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_hangman_keyboard([], True, lang), quote=False)
+    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_hangman_keyboard([], True, lang), quote=False)
     new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game_state)
     clean_old_games()
@@ -157,13 +157,13 @@ def is_game_won(game_state) -> bool:
     return True
 
 
-def on_hangman_action(update: Update, context: CallbackContext):
+async def on_hangman_action(update: Update, context: CallbackContext):
     query = update.callback_query
     # Not checking for whitelist because its broken with callback query...
     # But we still check if the message from query exists in our database so all is good!
 
     if query.data == 'h_blank':
-        query.answer()
+        await query.answer()
         return
 
     game_state = None
@@ -174,54 +174,54 @@ def on_hangman_action(update: Update, context: CallbackContext):
             break
             
     if game_state is None:
-        query.answer("Не могу найти данные этой игры :(")
+        await query.answer("Не могу найти данные этой игры :(")
         return
     
     if game_state['creation']:
         if query.from_user.id != game_state['creator_id']:
-            query.answer()
+            await query.answer()
             return
 
         if query.data == 'h_ok':
             if len(game_state['answer'].strip()) <= 2:
-                query.answer("Слишком короткое слово!")
+                await query.answer("Слишком короткое слово!")
                 return
             game_state['creation'] = False
-            edit_res = try_edit(query, game_state, get_hangman_keyboard(game_state['guesses'], False, game_state['l']))
+            edit_res = await try_edit(query, game_state, get_hangman_keyboard(game_state['guesses'], False, game_state['l']))
             if not edit_res:
                 game_state['creation'] = True
-            query.answer()
+            await query.answer()
             return
         elif query.data == 'h_del':
             if len(game_state['answer']) > 0:
                 game_state['answer'] = game_state['answer'][:-1]
-            query.answer(f"Ввод: {game_state['answer']}")
+            await query.answer(f"Ввод: {game_state['answer']}")
             return
         else:
             letter = query.data[2:].lower()
             game_state['answer'] += letter
-            query.answer(f"Ввод: {game_state['answer']}")
+            await query.answer(f"Ввод: {game_state['answer']}")
             return
     
     if query.data == 'h_ok' or query.data == 'h_del':
-        query.answer()
+        await query.answer()
         return
 
     if game_state["incorrect_guesses"] >= MAX_INCORRECT_GUESSES or is_game_won(game_state):
-        query.answer()
+        await query.answer()
         return
     
     if query.from_user.id == game_state['creator_id']:
-        query.answer("Ты не можешь угадывать в своей игре!")
+        await query.answer("Ты не можешь угадывать в своей игре!")
         return
     
     if query.from_user.id == game_state['last_user_id']:
-        query.answer("Ты не можешь угадывать сразу после неудачной попытки!")
+        await query.answer("Ты не можешь угадывать сразу после неудачной попытки!")
         return
 
     letter = query.data[2:].lower()
     if letter in game_state['guesses']:
-        query.answer()
+        await query.answer()
         return
 
     prev_game_state = json.loads(json.dumps(game_state))
@@ -237,7 +237,7 @@ def on_hangman_action(update: Update, context: CallbackContext):
         game_state['last_user_id'] = query.from_user.id
     
     if game_state["incorrect_guesses"] >= MAX_INCORRECT_GUESSES or is_game_won(game_state):
-        edit_res = try_edit(query, game_state, None)
+        edit_res = await try_edit(query, game_state, None)
         if edit_res:
             games_data.remove(game_state)
         else:
@@ -245,25 +245,25 @@ def on_hangman_action(update: Update, context: CallbackContext):
                 if state == game_state:
                     games_data[index] = prev_game_state
     else:
-        edit_res = try_edit(query, game_state, get_hangman_keyboard(game_state['guesses'], False, game_state['l']))
+        edit_res = await try_edit(query, game_state, get_hangman_keyboard(game_state['guesses'], False, game_state['l']))
         if not edit_res:
             for index, state in enumerate(games_data):
                 if state == game_state:
                     games_data[index] = prev_game_state
 
 
-def try_edit(query, game_state, reply_markup = None) -> bool:
+async def try_edit(query, game_state, reply_markup = None) -> bool:
     try:
-        query.edit_message_text(text=format_playing_field(game_state), reply_markup=reply_markup)
-        query.answer()
+        await query.edit_message_text(text=format_playing_field(game_state), reply_markup=reply_markup)
+        await query.answer()
         return True
     except RetryAfter:
-        query.answer("Не получилось обновить игру из-за защиты от спама :(")
+        await query.answer("Не получилось обновить игру из-за защиты от спама :(")
         return False
     except Exception as e:
         #print(traceback.format_exc())
         print(e)
-        query.answer()
+        await query.answer()
         return True
 
 

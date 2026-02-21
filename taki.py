@@ -118,13 +118,13 @@ def get_taki_keyboard(guesses: List[int]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(key_rows)
 
 
-def takistart(update: Update, context: CallbackContext):
+async def takistart(update: Update, context: CallbackContext):
     if not in_whitelist(update):
         return
 
     # Do not allow starting a new game until the current one is finished (can be abused for stats)
     if len(games_data) > 0 and not games_data[-1].is_finished():
-        update.message.reply_text("Эй, сначала закончи прошлую игру!", reply_to_message_id=games_data[-1].game_message_id.split('/')[1])
+        await update.message.reply_text("Эй, сначала закончи прошлую игру!", reply_to_message_id=games_data[-1].game_message_id.split('/')[1])
         return
 
     difficulty = DEFAULT_DIFFICULTY
@@ -135,7 +135,7 @@ def takistart(update: Update, context: CallbackContext):
             if again_setter:
                 again_setter(lambda: takistart(update, context))
         else:
-            update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
+            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
             return
 
     prev_suspects = list(prev_suspect_uids)
@@ -160,13 +160,13 @@ def takistart(update: Update, context: CallbackContext):
 
     new_game = GameState(game_message_id="", difficulty=difficulty, suspect_uid=sus_uid, suspect_name=sus_name,
                          suspect_msgs=sus_msgs, guesses=[], guesser_uids=[], start_msgs=random.choice(START_MESSAGES), action_log="")
-    message = update.message.reply_text(format_playing_field(new_game), reply_markup=get_taki_keyboard([]), quote=False)
+    message = await update.message.reply_text(format_playing_field(new_game), reply_markup=get_taki_keyboard([]), quote=False)
     new_game.game_message_id = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game)
     prev_suspect_uids.append(sus_uid)
 
 
-def takistats(update: Update, context: CallbackContext):
+async def takistats(update: Update, context: CallbackContext):
     if not in_whitelist(update):
         return
     difficulty = DEFAULT_DIFFICULTY
@@ -175,7 +175,7 @@ def takistats(update: Update, context: CallbackContext):
         if (req_diff := int(diff_match.group(1))) in DIFFICULTIES:
             difficulty = req_diff
         else:
-            update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
+            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
             return
 
     user_cache = {}
@@ -229,25 +229,25 @@ def takistats(update: Update, context: CallbackContext):
     if len(kdratios) == 0:
         text += "[ДАННЫЕ УДАЛЕНЫ]\n"
 
-    update.message.reply_text(text, quote=False)
+    await update.message.reply_text(text, quote=False)
 
 
-def on_taki_action(update: Update, context: CallbackContext):
+async def on_taki_action(update: Update, context: CallbackContext):
     query = update.callback_query
     if query.data == 't_blank':
-        query.answer()
+        await query.answer()
         return
     
     message_id = str(query.message.chat_id) + "/" + str(query.message.message_id)
     game = next((game for game in games_data if game.game_message_id == message_id), None)
     if game is None:
-        query.answer("Не могу найти данные этой игры :(")
+        await query.answer("Не могу найти данные этой игры :(")
         return
 
     guess_uid = int(query.data[2:])
     guess_name = next((name for uid, (name, _) in taki_suspects.items() if uid == guess_uid), "???")
     if guess_uid in game.guesses:
-        query.answer()
+        await query.answer()
         return
 
     prev_game = copy.deepcopy(game)
@@ -279,7 +279,7 @@ def on_taki_action(update: Update, context: CallbackContext):
         else:
             game.action_log = f"Подозреваемый {game.suspect_name} скрывается в закате. {random.choice(LOSE_MESSAGES)}"
 
-        if commit_game := try_edit(query, game, None):
+        if commit_game := await try_edit(query, game, None):
             games_data.remove(game)
         else:
             for index, stored_game in enumerate(games_data):
@@ -287,7 +287,7 @@ def on_taki_action(update: Update, context: CallbackContext):
                     games_data[index] = prev_game
     else:
         game.action_log = f"{guesser_name} выбирает подозреваемого {guess_name}..."
-        if not (commit_game := try_edit(query, game, get_taki_keyboard(game.guesses))):
+        if not (commit_game := await try_edit(query, game, get_taki_keyboard(game.guesses))):
             for index, stored_game in enumerate(games_data):
                 if stored_game == game:
                     games_data[index] = prev_game
@@ -314,17 +314,17 @@ def on_taki_action(update: Update, context: CallbackContext):
                 r.zrem(f"{RKEY_CURR_STREAK}_{game.difficulty}", guesser_id)
 
 
-def try_edit(query: CallbackQuery, game: GameState, reply_markup) -> bool:
+async def try_edit(query: CallbackQuery, game: GameState, reply_markup) -> bool:
     try:
-        query.edit_message_text(text=format_playing_field(game), reply_markup=reply_markup)
-        query.answer()
+        await query.edit_message_text(text=format_playing_field(game), reply_markup=reply_markup)
+        await query.answer()
         return True
     except RetryAfter:
-        query.answer("Не получилось обновить игру из-за защиты от спама :(")
+        await query.answer("Не получилось обновить игру из-за защиты от спама :(")
         return False
     except Exception as e:
         print(e)
-        query.answer()
+        await query.answer()
         return True
 
 

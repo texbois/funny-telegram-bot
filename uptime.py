@@ -8,7 +8,7 @@ import time
 logger = logging.getLogger(__name__)
 start_time = time.time()
 
-def uptime(update: Update, context):
+async def uptime(update: Update, context):
     if (not in_whitelist(update)):
         return
     now = time.time()
@@ -19,7 +19,7 @@ def uptime(update: Update, context):
 
     message = f"{hours:02}:{minutes:02}:{seconds:02}  {lucky_numbers.get(hours, '')}"
 
-    update.message.reply_text(message, quote=False)
+    await update.message.reply_text(message, quote=False)
 
 
 def subscribe(u: Updater):
