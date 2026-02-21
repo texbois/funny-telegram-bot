@@ -15,7 +15,7 @@ async def mentions(update: Update, context: CallbackContext):
     logger.info(f"[mentions] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match == None:
-        await update.message.reply_text("Упоминания чего будем считать?", quote=True)
+        await update.message.reply_text("Упоминания чего будем считать?", do_quote=True)
         return
     user_input = match.group(1).strip()
     all_messages = [m for m in redis_db.messages]
@@ -33,7 +33,7 @@ async def mentions(update: Update, context: CallbackContext):
                 result[msg.uid] += count
     
     if len(result) == 0:
-        await update.message.reply_text(f"Кажется никто никогда не говорил \"{user_input}\"...\nСтань первым!", quote=False)
+        await update.message.reply_text(f"Кажется никто никогда не говорил \"{user_input}\"...\nСтань первым!", do_quote=False)
         return
 
     message = f"Собрал статистику упоминаний {'фразы' if ' ' in user_input else 'слова'} \"{user_input}\":\n"
@@ -42,7 +42,7 @@ async def mentions(update: Update, context: CallbackContext):
         message += f"{i}. {redis_db.get_username_by_id(k)} — {v}  {lucky_numbers.get(v, '')}\n"
         i += 1
 
-    await update.message.reply_text(message, quote=False)
+    await update.message.reply_text(message, do_quote=False)
 
 
 def subscribe(u: Updater):

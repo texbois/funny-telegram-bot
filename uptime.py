@@ -19,7 +19,7 @@ async def uptime(update: Update, context):
 
     message = f"{hours:02}:{minutes:02}:{seconds:02}  {lucky_numbers.get(hours, '')}"
 
-    await update.message.reply_text(message, quote=False)
+    await update.message.reply_text(message, do_quote=False)
 
 
 def subscribe(u: Updater):

@@ -19,7 +19,7 @@ async def handle_chalice(update: Update, context: CallbackContext):
     logger.info(f"[chalice] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
-        await update.message.reply_text("Какую чашу будем измерять?", quote=True)
+        await update.message.reply_text("Какую чашу будем измерять?", do_quote=True)
         return
     user_input = match.group(1)
     await chalice(update, context, user_input)
@@ -58,7 +58,7 @@ async def chalice(update: Update, context: CallbackContext, user_input):
     ratio = mention_messages / absolute_max
     if mention_messages == 0:
         reply = random.choice([f"Чаша \"{chalice_title}\"... Абсолютно пуста!", f"В чаше \"{chalice_title}\" нет ни капельки!"])
-        await update.message.reply_text(reply, quote=False)
+        await update.message.reply_text(reply, do_quote=False)
     else:
         formatted_ratio = f"{round(ratio * 100)}%"
         reply = f"Чаша \"{chalice_title}\" заполнена на {formatted_ratio}"
@@ -87,7 +87,7 @@ async def chalice(update: Update, context: CallbackContext, user_input):
                 user_info = user_info.upper()
             reply += user_info
 
-        await update.message.reply_text(reply, quote=False)
+        await update.message.reply_text(reply, do_quote=False)
 
 
 def subscribe(u: Updater):

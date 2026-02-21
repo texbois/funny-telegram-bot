@@ -135,7 +135,7 @@ async def takistart(update: Update, context: CallbackContext):
             if again_setter:
                 again_setter(lambda: takistart(update, context))
         else:
-            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
+            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), do_quote=True)
             return
 
     prev_suspects = list(prev_suspect_uids)
@@ -160,7 +160,7 @@ async def takistart(update: Update, context: CallbackContext):
 
     new_game = GameState(game_message_id="", difficulty=difficulty, suspect_uid=sus_uid, suspect_name=sus_name,
                          suspect_msgs=sus_msgs, guesses=[], guesser_uids=[], start_msgs=random.choice(START_MESSAGES), action_log="")
-    message = await update.message.reply_text(format_playing_field(new_game), reply_markup=get_taki_keyboard([]), quote=False)
+    message = await update.message.reply_text(format_playing_field(new_game), reply_markup=get_taki_keyboard([]), do_quote=False)
     new_game.game_message_id = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game)
     prev_suspect_uids.append(sus_uid)
@@ -175,7 +175,7 @@ async def takistats(update: Update, context: CallbackContext):
         if (req_diff := int(diff_match.group(1))) in DIFFICULTIES:
             difficulty = req_diff
         else:
-            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), quote=True)
+            await update.message.reply_text("Это уже слишком, приятель. Выбери сложность из: " + ", ".join(map(str, DIFFICULTIES.keys())), do_quote=True)
             return
 
     user_cache = {}
@@ -229,7 +229,7 @@ async def takistats(update: Update, context: CallbackContext):
     if len(kdratios) == 0:
         text += "[ДАННЫЕ УДАЛЕНЫ]\n"
 
-    await update.message.reply_text(text, quote=False)
+    await update.message.reply_text(text, do_quote=False)
 
 
 async def on_taki_action(update: Update, context: CallbackContext):

@@ -142,7 +142,7 @@ async def start_hangman(update: Update, context: CallbackContext, lang: str):
     if (not in_whitelist(update)):
         return
     new_game_state = {"message_id": "", "answer": "", "guesses": [], "incorrect_guesses": 0, "last_action": "Игра началась!\n", "last_user_id": None, "creator_id": update.message.from_user.id, "creation": True, "l": lang}
-    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_hangman_keyboard([], True, lang), quote=False)
+    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_hangman_keyboard([], True, lang), do_quote=False)
     new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game_state)
     clean_old_games()

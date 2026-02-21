@@ -19,76 +19,76 @@ async def random_cope(update: Update, context: CallbackContext):
     res = random.choices(options, weights=weights)[0]
     logger.info(f"[cope] res {res}")
     if res == 1:
-        await update.message.reply_text(f"Найс коупишь", quote=False)
+        await update.message.reply_text(f"Найс коупишь", do_quote=False)
     elif res == 2:
-        await update.message.reply_text(f"Коуп жиденький", quote=False)
+        await update.message.reply_text(f"Коуп жиденький", do_quote=False)
     elif res == 3:
-        await update.message.reply_text(f"Коуп хороший\nЗдорово покоупил", quote=False)
+        await update.message.reply_text(f"Коуп хороший\nЗдорово покоупил", do_quote=False)
     elif res == 4:
-        await update.message.reply_text(f"Коуп плохой\nКоупи лучше", quote=False)
+        await update.message.reply_text(f"Коуп плохой\nКоупи лучше", do_quote=False)
     elif res == 5:
-        await update.message.reply_text(f"Коуп отвратительный", quote=False)
+        await update.message.reply_text(f"Коуп отвратительный", do_quote=False)
     elif res == 6:
-        await update.message.reply_text(f"=== ЛЕГЕНДАРНЫЙ КОУП ===\nЭтот коуп войдет в историю!\nПоздравляем @{update.message.from_user.username} с получением этого невероятного редкого коупа", quote=False)
+        await update.message.reply_text(f"=== ЛЕГЕНДАРНЫЙ КОУП ===\nЭтот коуп войдет в историю!\nПоздравляем @{update.message.from_user.username} с получением этого невероятного редкого коупа", do_quote=False)
     elif res == 7:
-        await update.message.reply_text(f"Коуп слабый\nКоупи сильнее", quote=False)
+        await update.message.reply_text(f"Коуп слабый\nКоупи сильнее", do_quote=False)
     elif res == 8:
-        await update.message.reply_text(f"Тариф Гигакоупище\nБезлимитный коуп по всей России", quote=False)
+        await update.message.reply_text(f"Тариф Гигакоупище\nБезлимитный коуп по всей России", do_quote=False)
     elif res == 9:
-        await update.message.reply_text(f"Лютейший коуп", quote=False)
+        await update.message.reply_text(f"Лютейший коуп", do_quote=False)
     elif res == 10:
-        await update.message.reply_text(f"Удачный коуп!\nМожешь еще раз покоупить", quote=False)
+        await update.message.reply_text(f"Удачный коуп!\nМожешь еще раз покоупить", do_quote=False)
     elif res == 11:
-        await update.message.reply_text(f"Этот божественный коуп настолько силен, что способен излучать ауру добра и позитива, которая увеличивает силу коупа друзей на 50%", quote=False)
+        await update.message.reply_text(f"Этот божественный коуп настолько силен, что способен излучать ауру добра и позитива, которая увеличивает силу коупа друзей на 50%", do_quote=False)
     elif res == 12:
-        await update.message.reply_text(f"Выбираем главного коупера дня", quote=False)
+        await update.message.reply_text(f"Выбираем главного коупера дня", do_quote=False)
         sleep(1.5)
-        await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), quote=False)
+        await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), do_quote=False)
         sleep(1.5)
-        await update.message.reply_text(f"А вот и победитель - @{update.message.from_user.username}!", quote=False)
+        await update.message.reply_text(f"А вот и победитель - @{update.message.from_user.username}!", do_quote=False)
     elif res == 13:
-        await update.message.reply_text(f"Как же он сильно коупит...\nПарень полегче!", quote=False)
+        await update.message.reply_text(f"Как же он сильно коупит...\nПарень полегче!", do_quote=False)
     elif res == 14:
-        await update.message.reply_text(f"Критически плохой коуп!\nУ тебя весь день будет ФОМО", quote=False)
+        await update.message.reply_text(f"Критически плохой коуп!\nУ тебя весь день будет ФОМО", do_quote=False)
     elif res == 15:
-        await update.message.reply_text(f"Отличный коуп!\nВсе проблемы решены", quote=False)
+        await update.message.reply_text(f"Отличный коуп!\nВсе проблемы решены", do_quote=False)
     elif res == 16:
-        await update.message.reply_text(f"Шедевральный коуп!\nО нем напишут в книгах", quote=False)
+        await update.message.reply_text(f"Шедевральный коуп!\nО нем напишут в книгах", do_quote=False)
     elif res == 17:
-        await update.message.reply_text(f"Я не вижу вашего коупа", quote=False)
+        await update.message.reply_text(f"Я не вижу вашего коупа", do_quote=False)
     elif res == 18:
         values = list(r.hgetall(DICTIONARY_HASH).values())
         values = [val for val in values if val.startswith(STICKER_PREFIX)]
         if len(values) == 0:
-            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", quote=False)
+            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", do_quote=False)
             return
         random.shuffle(values)
         file_id = values[0][len(STICKER_PREFIX):]
         logger.info(f"fileid {file_id}")
-        await update.message.reply_sticker(file_id, quote=False)
+        await update.message.reply_sticker(file_id, do_quote=False)
     elif res == 19:
         values = list(r.hgetall(DICTIONARY_HASH).values())
         values = [val for val in values if val.startswith(GIF_PREFIX)]
         if len(values) == 0:
-            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", quote=False)
+            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", do_quote=False)
             return
         random.shuffle(values)
         file_id = values[0][len(GIF_PREFIX):]
         logger.info(f"fileid {file_id}")
-        await update.message.reply_animation(file_id, quote=False)
+        await update.message.reply_animation(file_id, do_quote=False)
     elif res == 20:
-        await update.message.reply_text(f"Кто-то сомневается в твоем коупе? Вызови его на дуэль в /rockpaperscissors и посмотри чей коуп победит!", quote=False)
+        await update.message.reply_text(f"Кто-то сомневается в твоем коупе? Вызови его на дуэль в /rockpaperscissors и посмотри чей коуп победит!", do_quote=False)
     elif res == 21:
-        await update.message.reply_text(f"Кто-то сомневается в твоем коупе? Вызови его на дуэль в /connectfour и посмотри чей коуп победит!", quote=False)
+        await update.message.reply_text(f"Кто-то сомневается в твоем коупе? Вызови его на дуэль в /connectfour и посмотри чей коуп победит!", do_quote=False)
     elif res == 22:
         keys = list(r.hgetall(DICTIONARY_HASH).keys())
         keys = [key for key in keys if key.lower().startswith("коуп")]
         if len(keys) == 0:
-            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", quote=False)
+            await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", do_quote=False)
             return
         random.shuffle(keys)
         key = keys[0]
-        await update.message.reply_text(f"/get {key}", quote=False)
+        await update.message.reply_text(f"/get {key}", do_quote=False)
         sleep(0.5)
         logger.info(f"cope get {key}")
         update.message.text = f"/get {key}"
@@ -96,38 +96,38 @@ async def random_cope(update: Update, context: CallbackContext):
     elif res == 23:
         await opinion(update, context, "коуп")
     elif res == 24:
-        await update.message.reply_text(f"Оцениваем силу коупа от 1 до 6", quote=False)
+        await update.message.reply_text(f"Оцениваем силу коупа от 1 до 6", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(quote=False)
+        await update.message.reply_dice(do_quote=False)
     elif res == 25:
         # Cope harder sir
-        await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", quote=False)
+        await update.message.reply_animation("CgACAgQAAx0CT_IhJQABBXMmY7qlHgn9TsIE04UL3TKhfZGCmOgAAmIDAAJ43PVSPgZ0f8U9qU4tBA", do_quote=False)
     elif res == 26:
-        await update.message.reply_text(f"Врать не буду, коуп не впечатлил", quote=False)
+        await update.message.reply_text(f"Врать не буду, коуп не впечатлил", do_quote=False)
     elif res == 27:
-        await update.message.reply_text(f"Удовлетворительный коуп", quote=False)
+        await update.message.reply_text(f"Удовлетворительный коуп", do_quote=False)
     elif res == 28:
-        await update.message.reply_text(f"Взорванный коуп!", quote=False)
+        await update.message.reply_text(f"Взорванный коуп!", do_quote=False)
     elif res == 29:
-        await update.message.reply_text(f"Хорош коупить, погнали лучше в казиныч!\nЗаодно посмотрим насколько хорошо твой коуп сможет выбить нам 3 лимона", quote=False)
+        await update.message.reply_text(f"Хорош коупить, погнали лучше в казиныч!\nЗаодно посмотрим насколько хорошо твой коуп сможет выбить нам 3 лимона", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(emoji="🎰", quote=False)
+        await update.message.reply_dice(emoji="🎰", do_quote=False)
     elif res == 30:
-        await update.message.reply_text(f"Хорош коупить, погнали лучше в боулинг!\nЗаодно посмотрим насколько хорошо твой коуп умеет выбивать кегли", quote=False)
+        await update.message.reply_text(f"Хорош коупить, погнали лучше в боулинг!\nЗаодно посмотрим насколько хорошо твой коуп умеет выбивать кегли", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(emoji="🎳", quote=False)
+        await update.message.reply_dice(emoji="🎳", do_quote=False)
     elif res == 31:
-        await update.message.reply_text(f"Хорош коупить, погнали лучше в дартс!\nЗаодно посмотрим насколько хорошо твой коуп попадает в яблочко!", quote=False)
+        await update.message.reply_text(f"Хорош коупить, погнали лучше в дартс!\nЗаодно посмотрим насколько хорошо твой коуп попадает в яблочко!", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(emoji="🎯", quote=False)
+        await update.message.reply_dice(emoji="🎯", do_quote=False)
     elif res == 32:
-        await update.message.reply_text(f"Хорош коупить, погнали лучше в футбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в ворота", quote=False)
+        await update.message.reply_text(f"Хорош коупить, погнали лучше в футбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в ворота", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(emoji="⚽", quote=False)
+        await update.message.reply_dice(emoji="⚽", do_quote=False)
     elif res == 33:
-        await update.message.reply_text(f"Хорош коупить, погнали лучше в баскетбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в корзину", quote=False)
+        await update.message.reply_text(f"Хорош коупить, погнали лучше в баскетбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в корзину", do_quote=False)
         sleep(0.5)
-        await update.message.reply_dice(emoji="🏀", quote=False)
+        await update.message.reply_dice(emoji="🏀", do_quote=False)
 
 
 

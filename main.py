@@ -45,13 +45,13 @@ again_function = None
 
 
 async def ping(update: Update, context: CallbackContext):
-    await update.message.reply_text("Понг!", quote=True)
+    await update.message.reply_text("Понг!", do_quote=True)
 
 
 async def test(update: Update, context: CallbackContext):
     if (not in_whitelist(update)):
         return
-    await update.message.reply_text("Looking cool joker!", quote=False)
+    await update.message.reply_text("Looking cool joker!", do_quote=False)
     #print(update.message.link)
     #print(update.message.reply_to_message)
     #print(update.message.reply_to_message.document)
@@ -61,15 +61,15 @@ async def test(update: Update, context: CallbackContext):
 
 
 async def dice(update: Update, context: CallbackContext):
-    await update.message.reply_dice(quote=False)
+    await update.message.reply_dice(do_quote=False)
 
     
 async def casino(update: Update, context: CallbackContext):
-    await update.message.reply_dice(emoji="🎰", quote=False)
+    await update.message.reply_dice(emoji="🎰", do_quote=False)
 
 
 async def contribute(update: Update, context: CallbackContext):
-    await update.message.reply_text("https://github.com/sunDalik/funny-telegram-bot", quote=False)
+    await update.message.reply_text("https://github.com/sunDalik/funny-telegram-bot", do_quote=False)
 
 
 async def getDict(update: Update, context: CallbackContext):
@@ -78,13 +78,13 @@ async def getDict(update: Update, context: CallbackContext):
     logger.info(f"[getDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if (match == None):
-        await update.message.reply_text("Ты чего хочешь-то?", quote=True)
+        await update.message.reply_text("Ты чего хочешь-то?", do_quote=True)
         return
     key = match.group(1).strip()
     key, val = get_close_value_by_key(key)
         
     if val is None:
-        await update.message.reply_text("Не помню такого", quote=True)
+        await update.message.reply_text("Не помню такого", do_quote=True)
         return
     await send_get_value(update, key, val, show_header=True)
 
@@ -102,14 +102,14 @@ async def rand_get(update: Update, context: CallbackContext, previous_results=[]
     if len(keys) == 0:
         if len(previous_results) > 0:
             if search_string == "":
-                await update.message.reply_text("Я уже выдал все, что я знаю T__T", quote=False)
+                await update.message.reply_text("Я уже выдал все, что я знаю T__T", do_quote=False)
             else:
-                await update.message.reply_text(f"Я уже выдал все геты по запросу \"{search_string}\" T__T", quote=False)
+                await update.message.reply_text(f"Я уже выдал все геты по запросу \"{search_string}\" T__T", do_quote=False)
         else:
             if search_string == "":
-                await update.message.reply_text("Не могу найти ни одного гета...", quote=False)
+                await update.message.reply_text("Не могу найти ни одного гета...", do_quote=False)
             else:
-                await update.message.reply_text(f"Не могу найти ни одного гета по запросу \"{search_string}\"...", quote=False)
+                await update.message.reply_text(f"Не могу найти ни одного гета по запросу \"{search_string}\"...", do_quote=False)
         return
     key = random.choice(keys)
     value = r.hget(DICTIONARY_HASH, key)
@@ -124,19 +124,19 @@ async def rawGetDict(update: Update, context: CallbackContext):
     logger.info(f"[rawGetDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
-        await update.message.reply_text("Ты чего хочешь-то?", quote=True)
+        await update.message.reply_text("Ты чего хочешь-то?", do_quote=True)
         return
     key = match.group(1).strip()
     key, val = get_close_value_by_key(key)
         
     if val is None:
-        await update.message.reply_text("Не помню такого", quote=True)
+        await update.message.reply_text("Не помню такого", do_quote=True)
         return
 
     if val.startswith(RND_GET_PREFIX):
-        await update.message.reply_text(f"/rndset {key} {val[len(RND_GET_PREFIX):]}", quote=False)
+        await update.message.reply_text(f"/rndset {key} {val[len(RND_GET_PREFIX):]}", do_quote=False)
     else:
-        await update.message.reply_text(f"/set {key} {val}", quote=False)
+        await update.message.reply_text(f"/set {key} {val}", do_quote=False)
 
     
 def get_close_value_by_key(key: str):
@@ -158,28 +158,28 @@ async def send_get_value(update: Update, key: str, val, show_header, recursion_l
         await update.message.reply_text(f"Что-то я не помню что такое {key} :<")
     elif val.startswith(POLL_PREFIX + "{"):
         poll_data = json.loads(val[len(POLL_PREFIX):])
-        await update.message.reply_poll(poll_data.get("question", ""), poll_data.get("options", []), is_anonymous=poll_data.get("is_anonymous", False), allows_multiple_answers=poll_data.get("allows_multiple_answers", False), quote=False)
+        await update.message.reply_poll(poll_data.get("question", ""), poll_data.get("options", []), is_anonymous=poll_data.get("is_anonymous", False), allows_multiple_answers=poll_data.get("allows_multiple_answers", False), do_quote=False)
     elif val.startswith(STICKER_PREFIX):
         file_id = val[len(STICKER_PREFIX):]
-        await update.message.reply_sticker(file_id, quote=False)
+        await update.message.reply_sticker(file_id, do_quote=False)
     elif val.startswith(GIF_PREFIX):
         file_id = val[len(GIF_PREFIX):]
         # reply_document should also work
-        await update.message.reply_animation(file_id, quote=False)
+        await update.message.reply_animation(file_id, do_quote=False)
     elif val.startswith(PHOTO_PREFIX):
         values = val[len(PHOTO_PREFIX):].split(CAPTION_DELIMITER, maxsplit=1)
         file_id = values[0]
         caption = values[1] if len(values) > 1 else ""
-        await update.message.reply_photo(file_id, quote=False, caption=caption)
+        await update.message.reply_photo(file_id, do_quote=False, caption=caption)
     elif val.startswith(VIDEO_PREFIX):
         values = val[len(VIDEO_PREFIX):].split(CAPTION_DELIMITER, maxsplit=1)
         file_id = values[0]
         caption = values[1] if len(values) > 1 else ""
-        await update.message.reply_video(file_id, quote=False, caption=caption)
+        await update.message.reply_video(file_id, do_quote=False, caption=caption)
     elif val.startswith(VOICE_PREFIX):
         file_id = val[len(VOICE_PREFIX):]
         # reply_document should also work
-        await update.message.reply_voice(file_id, quote=False)
+        await update.message.reply_voice(file_id, do_quote=False)
     elif val.startswith(RND_GET_PREFIX):
         if recursion_level > 100:
             await update.message.reply_text("Мужик иди в задницу со своей рекурсией")
@@ -199,12 +199,12 @@ async def send_get_value(update: Update, key: str, val, show_header, recursion_l
         if not sent_success and len(values) >= 1:
             await send_get_value(update, values[0], None, show_header=show_header, recursion_level=recursion_level + 1)
     elif val == '🎲' or val == '🎯' or val == '🏀' or val == '⚽️' or val == '🎳' or val == '🎰':
-        await update.message.reply_dice(emoji=val, quote=False)
+        await update.message.reply_dice(emoji=val, do_quote=False)
     else:
         if show_header:
-            await update.message.reply_text(f"{key}\n{val}", quote=False)
+            await update.message.reply_text(f"{key}\n{val}", do_quote=False)
         else:
-            await update.message.reply_text(f"{val}", quote=False)
+            await update.message.reply_text(f"{val}", do_quote=False)
 
 
 async def rndSetDict(update: Update, context: CallbackContext):
@@ -218,7 +218,7 @@ async def rndSetDict(update: Update, context: CallbackContext):
             key = match.group(1)
             values_text = update.message.reply_to_message.text
         else:
-            await update.message.reply_text("Что-то я ничего не понял. Тебе нужно написать в качестве значения разделенный пробелами список ключей, по которым будет делаться /get. Например /rndset key funnyget1 funnyget2 funnyget3", quote=True)
+            await update.message.reply_text("Что-то я ничего не понял. Тебе нужно написать в качестве значения разделенный пробелами список ключей, по которым будет делаться /get. Например /rndset key funnyget1 funnyget2 funnyget3", do_quote=True)
             return
     else:
         key = match.group(1)
@@ -273,10 +273,10 @@ async def setDict(update: Update, context: CallbackContext):
                 set_as_link = True
                 val = update.message.reply_to_message.link
             else:
-                await update.message.reply_text("Что-то я ничего не понял...", quote=True)
+                await update.message.reply_text("Что-то я ничего не понял...", do_quote=True)
                 return
         else:
-            await update.message.reply_text("Что-то я ничего не понял. Удали свой /set и напиши нормально", quote=True)
+            await update.message.reply_text("Что-то я ничего не понял. Удали свой /set и напиши нормально", do_quote=True)
             return
     else:
         key = match.group(1)
@@ -290,27 +290,27 @@ async def send_confirm_set_value(update: Update, key: str, old_value, set_as_lin
     extra_text = " (ссылкой на сообщение)" if set_as_link else ""
     if old_value is not None:
         if old_value.startswith(POLL_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там был какой-то опрос", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там был какой-то опрос", do_quote=False)
         elif old_value.startswith(STICKER_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там был какой-то стикер", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там был какой-то стикер", do_quote=False)
         elif old_value.startswith(GIF_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там была какая-то гифка", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там была какая-то гифка", do_quote=False)
         elif old_value.startswith(PHOTO_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там была какая-то картинка", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там была какая-то картинка", do_quote=False)
         elif old_value.startswith(VIDEO_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было какое-то видео", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было какое-то видео", do_quote=False)
         elif old_value.startswith(VOICE_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было какое-то голосовое", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было какое-то голосовое", do_quote=False)
         elif old_value.startswith(RND_GET_PREFIX):
-            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было что-то рандомное", quote=False)
+            await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было что-то рандомное", do_quote=False)
         else:
             output_limit = 100
             if len(old_value) > output_limit:
-                await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было \"{old_value[0:output_limit]}...\" и т.д.", quote=False)
+                await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было \"{old_value[0:output_limit]}...\" и т.д.", do_quote=False)
             else:
-                await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было \"{old_value}\"", quote=False)
+                await update.message.reply_text(f"Запомнил {key}{extra_text}! Раньше там было \"{old_value}\"", do_quote=False)
     else:
-        await update.message.reply_text(f"Запомнил {key}{extra_text}!", quote=False)
+        await update.message.reply_text(f"Запомнил {key}{extra_text}!", do_quote=False)
 
 
 async def delDict(update: Update, context: CallbackContext):
@@ -324,9 +324,9 @@ async def delDict(update: Update, context: CallbackContext):
     key = match.group(1)
     val = r.hdel(DICTIONARY_HASH, key)
     if (val == 0):
-        await update.message.reply_text(f"Чего-чего? \"{key}\"? Я такого не знаю", quote=False)
+        await update.message.reply_text(f"Чего-чего? \"{key}\"? Я такого не знаю", do_quote=False)
     else:
-        await update.message.reply_text(f"Ок, я удалил ключ \"{key}\"", quote=False)
+        await update.message.reply_text(f"Ок, я удалил ключ \"{key}\"", do_quote=False)
 
 
 def sentence_matches_definition(definition: str, sentence: list) -> bool:
@@ -355,7 +355,7 @@ async def explain(update: Update, context: CallbackContext, previous_results = [
         if update.message.reply_to_message is not None and update.message.reply_to_message.text is not None:
             user_input = update.message.reply_to_message.text
         else:
-            await update.message.reply_text("Что тебе объяснить?", quote=True)
+            await update.message.reply_text("Что тебе объяснить?", do_quote=True)
             return
     else:
         user_input = match.group(1)
@@ -411,15 +411,15 @@ async def explain(update: Update, context: CallbackContext, previous_results = [
  
     if not found_explanation:
         if len(previous_results) > 0:
-            await update.message.reply_text(f"Кажется я все уже объяснил про \"{user_input}\"", quote=False)
+            await update.message.reply_text(f"Кажется я все уже объяснил про \"{user_input}\"", do_quote=False)
         else:
-            await update.message.reply_text(f"Я не знаю, что такое \"{user_input}\" ._.", quote=False)
+            await update.message.reply_text(f"Я не знаю, что такое \"{user_input}\" ._.", do_quote=False)
         return
 
     global again_function
     again_function = lambda: explain(update, context, previous_results + [result.lower()])
     logger.info(f"  Result: {result}")
-    await update.message.reply_text(f"<b>{user_input}</b>\n{result}", parse_mode=ParseMode.HTML, quote=False)
+    await update.message.reply_text(f"<b>{user_input}</b>\n{result}", parse_mode=ParseMode.HTML, do_quote=False)
 
 
 async def talk(update: Update, context: CallbackContext, previous_results=[]):
@@ -437,7 +437,7 @@ async def talk(update: Update, context: CallbackContext, previous_results=[]):
     if user_id is None:
         rnd_message = random.choice(redis_db.messages)
         logger.info(f"  Result: {rnd_message}")
-        await update.message.reply_text(rnd_message.text, quote=False)
+        await update.message.reply_text(rnd_message.text, do_quote=False)
     else:
         result = None
         if int(user_id) == context.bot.id:
@@ -452,12 +452,12 @@ async def talk(update: Update, context: CallbackContext, previous_results=[]):
                     result = msg.text
                     break
         if result is None:
-            await update.message.reply_text("...", quote=False)
+            await update.message.reply_text("...", do_quote=False)
         else:
             logger.info(f"  Result: {result}")
             global again_function
             again_function = lambda: talk(update, context, previous_results + [result.lower()])
-            await update.message.reply_text(result, quote=False)
+            await update.message.reply_text(result, do_quote=False)
 
 
 
@@ -475,17 +475,17 @@ async def getAll(update: Update, context: CallbackContext):
     keys.sort()
     if (len(keys) == 0):
         if (search_string != ""):
-            await update.message.reply_text(f"Не нашел никаких гетов по запросу \"{search_string}\" >.>", quote=False)
+            await update.message.reply_text(f"Не нашел никаких гетов по запросу \"{search_string}\" >.>", do_quote=False)
             return
         else:
-            await update.message.reply_text(f"Я пока не знаю никаких гетов... Но ты можешь их добавить командой /set!", quote=False)
+            await update.message.reply_text(f"Я пока не знаю никаких гетов... Но ты можешь их добавить командой /set!", do_quote=False)
             return
     header = 'Так вот же все ГЕТЫ:\n\n' if search_string == "" else f'Вот все ГЕТЫ с \"{search_string}\":\n\n'
     response = header + ", ".join(keys)
     # Telegram has a limit of 4096 characters per message and it doesn't split them automatically
     msgs = [response[i:i + 4096] for i in range(0, len(response), 4096)]
     for text in msgs:
-        await update.message.reply_text(text, quote=False)
+        await update.message.reply_text(text, do_quote=False)
 
 async def error(update: Update, context: CallbackContext):
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
@@ -499,9 +499,9 @@ async def again(update: Update, context: CallbackContext):
         try:
             await again_function()
         except:
-            await update.message.reply_text("А что /again? Кажется я все забыл...", quote=False)
+            await update.message.reply_text("А что /again? Кажется я все забыл...", do_quote=False)
     else:
-        await update.message.reply_text("А что /again? Кажется я все забыл...", quote=False)
+        await update.message.reply_text("А что /again? Кажется я все забыл...", do_quote=False)
 
 async def handle_normal_messages(update: Update, context: CallbackContext):
     if (not in_whitelist(update, send_warning=False)):

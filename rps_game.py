@@ -75,7 +75,7 @@ async def start_rps(update: Update, context: CallbackContext):
         else:
             username_1 = redis_db.get_username_by_id(update.message.from_user.id)
             new_game_state = {"message_id": "", "player_ids": [update.message.from_user.id, None], "player_usernames": [username_1, ""], "decisions": ["", ""], "current_round": 1, "scores": [0, 0], "log": "", "over": False}
-            message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_rps_keyboard(True), quote=False)
+            message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_rps_keyboard(True), do_quote=False)
             new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
             games_data.append(new_game_state)
             clean_old_games()
@@ -85,17 +85,17 @@ async def start_rps(update: Update, context: CallbackContext):
 
     if user_id is None:
         await update.message.reply_text(
-            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", quote=False)
+            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", do_quote=False)
         return
     elif str(user_id) == str(update.message.from_user.id):
-        await update.message.reply_text("Одиноко? Можешь поиграть со мной!", quote=True)
+        await update.message.reply_text("Одиноко? Можешь поиграть со мной!", do_quote=True)
         return
     
     username_1 = redis_db.get_username_by_id(update.message.from_user.id)
     # Hack... should be included in the get username function maybe?
     username_2 = context.bot.username if int(user_id) == context.bot.id else redis_db.get_username_by_id(user_id)
     new_game_state = {"message_id": "", "player_ids": [update.message.from_user.id, int(user_id)], "player_usernames": [username_1, username_2], "decisions": ["", ""], "current_round": 1, "scores": [0, 0], "log": "", "over": False}
-    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_rps_keyboard(False), quote=False)
+    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_rps_keyboard(False), do_quote=False)
     new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game_state)
     clean_old_games()

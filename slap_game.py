@@ -54,7 +54,7 @@ async def slap(update: Update, context: CallbackContext):
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_MADE_ACTION_DATE)):
         await update.message.reply_text(
-            "Ты можешь делать только один /slap или /heal за день!", quote=True)
+            "Ты можешь делать только один /slap или /heal за день!", do_quote=True)
         return
 
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
@@ -62,7 +62,7 @@ async def slap(update: Update, context: CallbackContext):
         if update.message.reply_to_message is not None:
             user_id = update.message.reply_to_message.from_user.id
         else:
-            await update.message.reply_text("Кого будем шлепать?", quote=False)
+            await update.message.reply_text("Кого будем шлепать?", do_quote=False)
             return
     else:
         user_id = parse_userid(match.group(1), context)
@@ -74,14 +74,14 @@ async def slap(update: Update, context: CallbackContext):
 
     if not user_id:
         await update.message.reply_text(
-            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", quote=False)
+            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", do_quote=False)
         return
     elif str(user_id) == str(context.bot.id):
-        await update.message.reply_text("🤨", quote=True)
+        await update.message.reply_text("🤨", do_quote=True)
     elif (user_not_in_chat):
-        await update.message.reply_text("Ты хотел кого-то шлепнуть... но его не оказалось в чате", quote=True)
+        await update.message.reply_text("Ты хотел кого-то шлепнуть... но его не оказалось в чате", do_quote=True)
     elif str(user_id) == str(update.message.from_user.id):
-        await update.message.reply_text("Хочешь шлепнуть сам себя? Сделай это в реальной жизни", quote=True)
+        await update.message.reply_text("Хочешь шлепнуть сам себя? Сделай это в реальной жизни", do_quote=True)
     else:
         lucky_roll = random.random() < 0.05
         if not lucky_roll:
@@ -96,7 +96,7 @@ async def slap(update: Update, context: CallbackContext):
 
         append = f"\n\nУДАЧНЫЙ ШЛЕПОК!\n<b>{update.message.from_user.username}</b> может сделать еще одно действие сегодня!" if lucky_roll else ""
         await update.message.reply_text(
-            f"<b>{update.message.from_user.username}</b> шлепнул @{redis_db.get_username_by_id(user_id)} большой рыбой по лицу!{append}", quote=False, parse_mode=ParseMode.HTML)
+            f"<b>{update.message.from_user.username}</b> шлепнул @{redis_db.get_username_by_id(user_id)} большой рыбой по лицу!{append}", do_quote=False, parse_mode=ParseMode.HTML)
 
 
 async def heal(update: Update, context: CallbackContext):
@@ -105,7 +105,7 @@ async def heal(update: Update, context: CallbackContext):
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_MADE_ACTION_DATE)):
         await update.message.reply_text(
-            "Ты можешь делать только один /slap или /heal за день!", quote=True)
+            "Ты можешь делать только один /slap или /heal за день!", do_quote=True)
         return
 
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
@@ -113,7 +113,7 @@ async def heal(update: Update, context: CallbackContext):
         if update.message.reply_to_message is not None:
             user_id = update.message.reply_to_message.from_user.id
         else:
-            await update.message.reply_text("Кого будем лечить?", quote=False)
+            await update.message.reply_text("Кого будем лечить?", do_quote=False)
             return
     else:
         user_id = parse_userid(match.group(1), context)
@@ -125,14 +125,14 @@ async def heal(update: Update, context: CallbackContext):
 
     if not user_id:
         await update.message.reply_text(
-            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", quote=False)
+            f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", do_quote=False)
         return
     elif str(user_id) == str(context.bot.id):
-        await update.message.reply_text("Спасибо, но я вне игры :^", quote=True)
+        await update.message.reply_text("Спасибо, но я вне игры :^", do_quote=True)
     elif (user_not_in_chat):
-        await update.message.reply_text("Ты хотел кого-то полечить... но его не оказалось в чате", quote=True)
+        await update.message.reply_text("Ты хотел кого-то полечить... но его не оказалось в чате", do_quote=True)
     elif str(user_id) == str(update.message.from_user.id):
-        await update.message.reply_text("Ты не можешь лечить сам себя!", quote=True)
+        await update.message.reply_text("Ты не можешь лечить сам себя!", do_quote=True)
     else:
         lucky_roll = random.random() < 0.05
         if not lucky_roll:
@@ -143,9 +143,9 @@ async def heal(update: Update, context: CallbackContext):
         append = f"\n\nУДАЧНОЕ ЛЕЧЕНИЕ!\n<b>{update.message.from_user.username}</b> может сделать еще одно действие сегодня!" if lucky_roll else ""
         if is_cooldown_active(other_user_stats.get(SS_VULNERABLE_DATE)):
             other_user_stats.pop(SS_VULNERABLE_DATE, None)
-            await update.message.reply_text(f"<b>{update.message.from_user.username}</b> погладил @{redis_db.get_username_by_id(user_id)} по голове и снял уязвимость!{append}", quote=False, parse_mode=ParseMode.HTML)
+            await update.message.reply_text(f"<b>{update.message.from_user.username}</b> погладил @{redis_db.get_username_by_id(user_id)} по голове и снял уязвимость!{append}", do_quote=False, parse_mode=ParseMode.HTML)
         else:
-            await update.message.reply_text(f"<b>{update.message.from_user.username}</b> погладил @{redis_db.get_username_by_id(user_id)} по голове.{append}", quote=False, parse_mode=ParseMode.HTML)
+            await update.message.reply_text(f"<b>{update.message.from_user.username}</b> погладил @{redis_db.get_username_by_id(user_id)} по голове.{append}", do_quote=False, parse_mode=ParseMode.HTML)
 
         r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
         r.hset(SLAP_STATS_HASH, str(user_id), json.dumps(other_user_stats))
@@ -157,12 +157,12 @@ async def parry(update: Update, context: CallbackContext):
 
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_VULNERABLE_DATE)):
-        await update.message.reply_text("Ты уязвим и не можешь парировать", quote=True)
+        await update.message.reply_text("Ты уязвим и не можешь парировать", do_quote=True)
         return
 
     last_slapped_date_str = stats.get(SS_LAST_SLAPPED_DATE)
     if last_slapped_date_str is None:
-        await update.message.reply_text("Некого парировать", quote=True)
+        await update.message.reply_text("Некого парировать", do_quote=True)
         return
     
     last_slapped_date = datetime.strptime(last_slapped_date_str, DATETIME_FORMAT)
@@ -175,7 +175,7 @@ async def parry(update: Update, context: CallbackContext):
         other_user_stats[SS_HEALTH] = other_user_stats.get(SS_HEALTH, DEFAULT_HEALTH) - 1
         other_user_stats[SS_TOTAL_SLAPS] = other_user_stats.get(SS_TOTAL_SLAPS, 0) - 1
         other_user_stats[SS_VULNERABLE_DATE] = datetime.now().strftime(DATETIME_FORMAT)
-        await update.message.reply_text(f"ИДЕАЛЬНОЕ ПАРИРОВАНИЕ! <b>{update.message.from_user.username}</b> спарировал шлепок от @{redis_db.get_username_by_id(other_user_id)} и сделал его уязвимым на день!", quote=False, parse_mode=ParseMode.HTML)
+        await update.message.reply_text(f"ИДЕАЛЬНОЕ ПАРИРОВАНИЕ! <b>{update.message.from_user.username}</b> спарировал шлепок от @{redis_db.get_username_by_id(other_user_id)} и сделал его уязвимым на день!", do_quote=False, parse_mode=ParseMode.HTML)
         stats.pop(SS_LAST_SLAPPED_DATE, None)
         stats.pop(SS_LAST_SLAPPED_BY_USERID, None)
         r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
@@ -186,13 +186,13 @@ async def parry(update: Update, context: CallbackContext):
         other_user_id = stats.get(SS_LAST_SLAPPED_BY_USERID, -1)
         other_user_stats = get_slap_stats(other_user_id)
         other_user_stats[SS_TOTAL_SLAPS] = other_user_stats.get(SS_TOTAL_SLAPS, 0) - 1
-        await update.message.reply_text(f"<b>{update.message.from_user.username}</b> спарировал шлепок от @{redis_db.get_username_by_id(other_user_id)}!", quote=False, parse_mode=ParseMode.HTML)
+        await update.message.reply_text(f"<b>{update.message.from_user.username}</b> спарировал шлепок от @{redis_db.get_username_by_id(other_user_id)}!", do_quote=False, parse_mode=ParseMode.HTML)
         stats.pop(SS_LAST_SLAPPED_DATE, None)
         stats.pop(SS_LAST_SLAPPED_BY_USERID, None)
         r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
         r.hset(SLAP_STATS_HASH, str(other_user_id), json.dumps(other_user_stats))
     else:
-        await update.message.reply_text("Парирование провалено", quote=True)
+        await update.message.reply_text("Парирование провалено", do_quote=True)
         stats.pop(SS_LAST_SLAPPED_DATE, None)
         stats.pop(SS_LAST_SLAPPED_BY_USERID, None)
         r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
@@ -207,7 +207,7 @@ async def slap_stats(update: Update, context: CallbackContext):
         slappers_dict[username] = get_slap_stats(key)
                 
     if len(slappers_dict.keys()) == 0:
-        await update.message.reply_text("Пока что никто никого не шлепал, поэтому и статистики нет", quote=False)
+        await update.message.reply_text("Пока что никто никого не шлепал, поэтому и статистики нет", do_quote=False)
         return
     message = f"Вот статистика шлепунов.\nИгрок [Шлеп-счет]  (Успешные шлепки / Лечения / Парирования / Идеальные парирования)\n\n"
     i = 1
@@ -223,7 +223,7 @@ async def slap_stats(update: Update, context: CallbackContext):
     time_to_next = datetime.combine(tomorrow, time.min) - datetime.now()
     time_to_next_h, time_to_next_m = time_to_next.seconds // 3600, (time_to_next.seconds // 60) % 60
     message += f"Новые шлепки будут доступны через {time_to_next_h} ч. и {time_to_next_m} м."
-    await update.message.reply_text(f"{message}", quote=False, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(f"{message}", do_quote=False, parse_mode=ParseMode.HTML)
 
 
 async def slap_rules(update: Update, context: CallbackContext):
@@ -236,7 +236,7 @@ async def slap_rules(update: Update, context: CallbackContext):
             "Вместо шлепка ты можешь полечить кого-нибудь, отправив /heal и указав другого игрока. Это увеличит его шлеп-счет на 1, а также снимет уязвимость.\n" + \
             "За день ты можешь делать только один шлепок или лечение, но сколько угодно парирований.\n" + \
             "Отправь /slapstats, чтобы посмотреть общую статистику по игре."
-    await update.message.reply_text(rules, quote=False)
+    await update.message.reply_text(rules, do_quote=False)
 
 
 async def reset_my_slap(update: Update, context: CallbackContext):
@@ -245,7 +245,7 @@ async def reset_my_slap(update: Update, context: CallbackContext):
     stats = get_slap_stats(update.message.from_user.id)
     stats.pop(SS_MADE_ACTION_DATE, None)
     r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
-    await update.message.reply_text("You can now /slap again. This is a debug command that should be removed on prod", quote=False)
+    await update.message.reply_text("You can now /slap again. This is a debug command that should be removed on prod", do_quote=False)
 
 
 def subscribe(u: Updater):
