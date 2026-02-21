@@ -1,5 +1,6 @@
-from telegram import ParseMode, Update
-from telegram.ext import Updater, CommandHandler
+from telegram import Update
+from telegram.ext import Application, CallbackContext, CommandHandler
+from telegram.constants import ParseMode
 import redis_db
 import re
 from utils import in_whitelist, parse_userid
@@ -248,11 +249,11 @@ async def reset_my_slap(update: Update, context: CallbackContext):
     await update.message.reply_text("You can now /slap again. This is a debug command that should be removed on prod", do_quote=False)
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler("slap", slap))
-    u.dispatcher.add_handler(CommandHandler("heal", heal))
-    u.dispatcher.add_handler(CommandHandler("parry", parry))
-    u.dispatcher.add_handler(CommandHandler("slapstats", slap_stats))
-    u.dispatcher.add_handler(CommandHandler("slaprules", slap_rules))
-    u.dispatcher.add_handler(CommandHandler("resetmyslap", reset_my_slap))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler("slap", slap))
+    a.add_handler(CommandHandler("heal", heal))
+    a.add_handler(CommandHandler("parry", parry))
+    a.add_handler(CommandHandler("slapstats", slap_stats))
+    a.add_handler(CommandHandler("slaprules", slap_rules))
+    a.add_handler(CommandHandler("resetmyslap", reset_my_slap))
     pass

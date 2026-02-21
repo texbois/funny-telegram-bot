@@ -1,6 +1,6 @@
-from telegram import ParseMode, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import RetryAfter
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 import redis_db
 import re
 from utils import in_whitelist, parse_userid
@@ -216,6 +216,6 @@ async def try_edit(query, game_state, reply_markup = None) -> bool:
         return True
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler(("rps", "rockpaperscissors"), start_rps))
-    u.dispatcher.add_handler(CallbackQueryHandler(on_rps_action, pattern="^rps_"))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler(("rps", "rockpaperscissors"), start_rps))
+    a.add_handler(CallbackQueryHandler(on_rps_action, pattern="^rps_"))

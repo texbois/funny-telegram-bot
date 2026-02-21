@@ -7,7 +7,7 @@ from typing import Dict, List
 from _secrets import lucky_numbers
 import markovify
 from telegram import Update
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Application, CallbackContext, CommandHandler
 import re
 import redis_db
 from utils import in_whitelist
@@ -147,7 +147,7 @@ async def markovpost(update: Update, context: CallbackContext, biased_chain=None
             await update.message.reply_text(f'Что-то я ничего смешного про "{query}" не придумал...', do_quote=False)
 
 
-def subscribe(u: Updater, _again_setter):
-    u.dispatcher.add_handler(CommandHandler(("shitpost", "s"), markovpost))
+def subscribe(a: Application, _again_setter):
+    a.add_handler(CommandHandler(("shitpost", "s"), markovpost))
     global again_setter
     again_setter = _again_setter

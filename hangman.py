@@ -1,6 +1,6 @@
-from telegram import ParseMode, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import RetryAfter
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 import redis_db
 from utils import in_whitelist
 import json
@@ -267,7 +267,7 @@ async def try_edit(query, game_state, reply_markup = None) -> bool:
         return True
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler(("hangman"), lambda update, context: start_hangman(update, context, "ru")))
-    u.dispatcher.add_handler(CommandHandler(("hangman_english"), lambda update, context: start_hangman(update, context, "en")))
-    u.dispatcher.add_handler(CallbackQueryHandler(on_hangman_action, pattern="^h_"))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler(("hangman"), lambda update, context: start_hangman(update, context, "ru")))
+    a.add_handler(CommandHandler(("hangman_english"), lambda update, context: start_hangman(update, context, "en")))
+    a.add_handler(CallbackQueryHandler(on_hangman_action, pattern="^h_"))

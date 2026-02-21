@@ -2,8 +2,9 @@ from _secrets import secrets_bot_token, banned_user_ids
 import logging
 import logging.handlers
 import traceback
-from telegram import ParseMode, Update
-from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, CallbackContext
+from telegram import Update
+from telegram.ext import Application, ApplicationBuilder, CallbackContext, CommandHandler, filters, MessageHandler
+from telegram.constants import ParseMode
 import re
 import json
 import random
@@ -487,7 +488,7 @@ async def getAll(update: Update, context: CallbackContext):
     for text in msgs:
         await update.message.reply_text(text, do_quote=False)
 
-async def error(update: Update, context: CallbackContext):
+async def error(update: object, context: CallbackContext):
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
     logger.warning('Exception in update "%s"\n%s\n%s', update, context.error, "".join(tb_list))
 
@@ -542,50 +543,8 @@ def again_setter(func):
     again_function = func
 
 
-if __name__ == '__main__':
-    logger.info("Parsing messages...")
-    redis_db.load_messages()
-
-    logger.info("Setting up telegram bot")
-    u = Updater(secrets_bot_token, use_context=True)
-
-    u.dispatcher.add_handler(CommandHandler("ping", ping))
-    u.dispatcher.add_handler(CommandHandler("get", getDict))
-    u.dispatcher.add_handler(CommandHandler("rawget", rawGetDict))
-    u.dispatcher.add_handler(CommandHandler("set", setDict))
-    u.dispatcher.add_handler(CommandHandler("rndset", rndSetDict))
-    u.dispatcher.add_handler(CommandHandler(("explain", "e"), explain))
-    opinion.subscribe(u, again_setter)
-    u.dispatcher.add_handler(CommandHandler("talk", talk))
-    u.dispatcher.add_handler(CommandHandler("contribute", contribute))
-    u.dispatcher.add_handler(CommandHandler("getall", getAll))
-    u.dispatcher.add_handler(CommandHandler(("randget", "rg"), rand_get))
-    u.dispatcher.add_handler(CommandHandler("del", delDict))
-    u.dispatcher.add_handler(CommandHandler(("again", "a"), again))
-    u.dispatcher.add_handler(CommandHandler("dice", dice))
-    u.dispatcher.add_handler(CommandHandler(("slot", "casino"), casino))
-    markov.subscribe(u, again_setter)
-    jerk_of_the_day.subscribe(u)
-    slap_game.subscribe(u)
-    rps_game.subscribe(u)
-    connect_four.subscribe(u)
-    hangman.subscribe(u)
-    random_cope.subscribe(u)
-    party.subscribe(u)
-    taki.subscribe(u, again_setter)
-    mentions.subscribe(u)
-    chalice.subscribe(u)
-    uptime.subscribe(u)
-
-
-    u.dispatcher.add_handler(CommandHandler("test", lambda update, context: test(update, context)))
-    
-    u.dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command & ~Filters.forwarded, handle_normal_messages))
-    #u.dispatcher.add_handler(MessageHandler(Filters.sticker | Filters.animation, debug_file_id))
-    u.dispatcher.add_handler(MessageHandler(Filters.command, handle_custom_command))
-    u.dispatcher.add_error_handler(error)
-
-    u.bot.set_my_commands([
+async def post_init(a: Application) -> None:
+    await a.bot.set_my_commands([
         ("ping", "am I alive?"),
         ("get", "<key> get value by key"),
         ("set", "<key> <value> set value by key"),
@@ -634,5 +593,49 @@ if __name__ == '__main__':
         ("uptime", "total time I've been running with no sleep")
     ])
 
+
+if __name__ == '__main__':
+    logger.info("Parsing messages...")
+    redis_db.load_messages()
+
+    logger.info("Setting up telegram bot")
+    a = ApplicationBuilder().token(secrets_bot_token).post_init(post_init).build()
+
+    a.add_handler(CommandHandler("ping", ping))
+    a.add_handler(CommandHandler("get", getDict))
+    a.add_handler(CommandHandler("rawget", rawGetDict))
+    a.add_handler(CommandHandler("set", setDict))
+    a.add_handler(CommandHandler("rndset", rndSetDict))
+    a.add_handler(CommandHandler(("explain", "e"), explain))
+    opinion.subscribe(a, again_setter)
+    a.add_handler(CommandHandler("talk", talk))
+    a.add_handler(CommandHandler("contribute", contribute))
+    a.add_handler(CommandHandler("getall", getAll))
+    a.add_handler(CommandHandler(("randget", "rg"), rand_get))
+    a.add_handler(CommandHandler("del", delDict))
+    a.add_handler(CommandHandler(("again", "a"), again))
+    a.add_handler(CommandHandler("dice", dice))
+    a.add_handler(CommandHandler(("slot", "casino"), casino))
+    markov.subscribe(a, again_setter)
+    jerk_of_the_day.subscribe(a)
+    slap_game.subscribe(a)
+    rps_game.subscribe(a)
+    connect_four.subscribe(a)
+    hangman.subscribe(a)
+    random_cope.subscribe(a)
+    party.subscribe(a)
+    taki.subscribe(a, again_setter)
+    mentions.subscribe(a)
+    chalice.subscribe(a)
+    uptime.subscribe(a)
+
+
+    a.add_handler(CommandHandler("test", lambda update, context: test(update, context)))
+
+    a.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & ~filters.FORWARDED, handle_normal_messages))
+    #a.add_handler(MessageHandler(filters.Sticker.ALL | filters.ANIMATION, debug_file_id))
+    a.add_handler(MessageHandler(filters.COMMAND, handle_custom_command))
+    a.add_error_handler(error)
+
     logger.info("Started polling for updates")
-    u.start_polling()
+    a.run_polling()

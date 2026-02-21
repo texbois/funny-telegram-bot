@@ -1,11 +1,11 @@
-from telegram import ParseMode, Update
-from telegram.ext import Updater, CommandHandler
+from telegram import Update
+from telegram.ext import Application, CallbackContext, CommandHandler
 import random
+import asyncio
 import redis_db
 from utils import in_whitelist
 import logging
-from time import sleep
-from main import getDict, DICTIONARY_HASH, GIF_PREFIX, STICKER_PREFIX
+from main import send_get_value, DICTIONARY_HASH, GIF_PREFIX, STICKER_PREFIX
 from opinion import opinion
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ async def random_cope(update: Update, context: CallbackContext):
         await update.message.reply_text(f"Этот божественный коуп настолько силен, что способен излучать ауру добра и позитива, которая увеличивает силу коупа друзей на 50%", do_quote=False)
     elif res == 12:
         await update.message.reply_text(f"Выбираем главного коупера дня", do_quote=False)
-        sleep(1.5)
+        await asyncio.sleep(1.5)
         await update.message.reply_text(random.choice(["Хмм...", "Так-так-так...", "Расшифровываю результаты...", "Спрашиваем мнения экспертов...", "Дайте подумать..."]), do_quote=False)
-        sleep(1.5)
+        await asyncio.sleep(1.5)
         await update.message.reply_text(f"А вот и победитель - @{update.message.from_user.username}!", do_quote=False)
     elif res == 13:
         await update.message.reply_text(f"Как же он сильно коупит...\nПарень полегче!", do_quote=False)
@@ -89,15 +89,15 @@ async def random_cope(update: Update, context: CallbackContext):
         random.shuffle(keys)
         key = keys[0]
         await update.message.reply_text(f"/get {key}", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         logger.info(f"cope get {key}")
-        update.message.text = f"/get {key}"
-        getDict(update, context)
+        value = r.hget(DICTIONARY_HASH, key)
+        await send_get_value(update, key, value, show_header=True)
     elif res == 23:
         await opinion(update, context, "коуп")
     elif res == 24:
         await update.message.reply_text(f"Оцениваем силу коупа от 1 до 6", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(do_quote=False)
     elif res == 25:
         # Cope harder sir
@@ -110,27 +110,27 @@ async def random_cope(update: Update, context: CallbackContext):
         await update.message.reply_text(f"Взорванный коуп!", do_quote=False)
     elif res == 29:
         await update.message.reply_text(f"Хорош коупить, погнали лучше в казиныч!\nЗаодно посмотрим насколько хорошо твой коуп сможет выбить нам 3 лимона", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(emoji="🎰", do_quote=False)
     elif res == 30:
         await update.message.reply_text(f"Хорош коупить, погнали лучше в боулинг!\nЗаодно посмотрим насколько хорошо твой коуп умеет выбивать кегли", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(emoji="🎳", do_quote=False)
     elif res == 31:
         await update.message.reply_text(f"Хорош коупить, погнали лучше в дартс!\nЗаодно посмотрим насколько хорошо твой коуп попадает в яблочко!", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(emoji="🎯", do_quote=False)
     elif res == 32:
         await update.message.reply_text(f"Хорош коупить, погнали лучше в футбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в ворота", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(emoji="⚽", do_quote=False)
     elif res == 33:
         await update.message.reply_text(f"Хорош коупить, погнали лучше в баскетбол!\nЗаодно посмотрим насколько хорошо твой коуп залетает в корзину", do_quote=False)
-        sleep(0.5)
+        await asyncio.sleep(0.5)
         await update.message.reply_dice(emoji="🏀", do_quote=False)
 
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler("cope", random_cope))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler("cope", random_cope))
     pass

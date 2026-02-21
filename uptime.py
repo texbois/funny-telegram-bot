@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Application, CallbackContext, CommandHandler
 from utils import in_whitelist
 import logging
 from _secrets import lucky_numbers
@@ -8,7 +8,7 @@ import time
 logger = logging.getLogger(__name__)
 start_time = time.time()
 
-async def uptime(update: Update, context):
+async def uptime(update: Update, context: CallbackContext):
     if (not in_whitelist(update)):
         return
     now = time.time()
@@ -22,5 +22,5 @@ async def uptime(update: Update, context):
     await update.message.reply_text(message, do_quote=False)
 
 
-def subscribe(u: Updater):
-    u.dispatcher.add_handler(CommandHandler(("uptime"), uptime))
+def subscribe(a: Application):
+    a.add_handler(CommandHandler(("uptime"), uptime))
