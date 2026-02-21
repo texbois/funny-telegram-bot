@@ -69,7 +69,7 @@ def get_cf_keyboard(pregame: bool = False) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def start_cf(update: Update, context: CallbackContext):
+async def start_cf(update: Update, context: CallbackContext):
     if (not in_whitelist(update)):
         return
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
@@ -79,7 +79,7 @@ def start_cf(update: Update, context: CallbackContext):
         else:
             username_1 = redis_db.get_username_by_id(update.message.from_user.id)
             new_game_state = {"message_id": "", "player_ids": [update.message.from_user.id, None], "player_usernames": [username_1, ""], "current_turn": random.choice([0, 1]), "board": [[-1 for col in range(0, 7)] for row in range(0, 6)], "winner": None,}
-            message = update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_cf_keyboard(True), quote=False)
+            message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_cf_keyboard(True), quote=False)
             new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
             games_data.append(new_game_state)
             clean_old_games()
@@ -88,11 +88,11 @@ def start_cf(update: Update, context: CallbackContext):
         user_id = parse_userid(match.group(1), context)
 
     if user_id is None:
-        update.message.reply_text(
+        await update.message.reply_text(
             f"Кто такой \"{match.group(1)}\"? Что-то я таких не знаю...", quote=False)
         return
     elif str(user_id) == str(update.message.from_user.id):
-        update.message.reply_text("Одиноко? Можешь поиграть со мной! Правда я не очень хорошо умею играть в это (⁄ ⁄•⁄ω⁄•⁄ ⁄)", quote=True)
+        await update.message.reply_text("Одиноко? Можешь поиграть со мной! Правда я не очень хорошо умею играть в это (⁄ ⁄•⁄ω⁄•⁄ ⁄)", quote=True)
         return
     
     username_1 = redis_db.get_username_by_id(update.message.from_user.id)
@@ -100,7 +100,7 @@ def start_cf(update: Update, context: CallbackContext):
     username_2 = context.bot.username if int(user_id) == context.bot.id else redis_db.get_username_by_id(user_id)
     first_turn = 0 if int(user_id) == context.bot.id else random.choice([0, 1]) 
     new_game_state = {"message_id": "", "player_ids": [update.message.from_user.id, int(user_id)], "player_usernames": [username_1, username_2], "current_turn": first_turn, "board": [[-1 for col in range(0, 7)] for row in range(0, 6)], "winner": None,}
-    message = update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_cf_keyboard(False), quote=False)
+    message = await update.message.reply_text(f"{format_playing_field(new_game_state)}", reply_markup=get_cf_keyboard(False), quote=False)
     new_game_state["message_id"] = str(message.chat_id) + "/" + str(message.message_id)
     games_data.append(new_game_state)
     clean_old_games()
@@ -144,7 +144,7 @@ def check_draw(game_state) -> bool:
     return True
 
 
-def on_cf_action(update: Update, context: CallbackContext):
+async def on_cf_action(update: Update, context: CallbackContext):
     query = update.callback_query
     # Not checking for whitelist because its broken with callback query...
     # But we still check if the message from query exists in our database so all is good!
@@ -156,7 +156,7 @@ def on_cf_action(update: Update, context: CallbackContext):
             break
             
     if game_state is None:
-        query.answer("Не могу найти данные этой игры :(")
+        await query.answer("Не могу найти данные этой игры :(")
         return
     
     if query.data == "cf_join":
@@ -164,10 +164,10 @@ def on_cf_action(update: Update, context: CallbackContext):
             game_state['player_ids'][1] = query.from_user.id
             game_state['player_usernames'][1] = redis_db.get_username_by_id(query.from_user.id)
             try:
-                query.edit_message_text(text=format_playing_field(game_state), reply_markup=get_cf_keyboard(False))
+                await query.edit_message_text(text=format_playing_field(game_state), reply_markup=get_cf_keyboard(False))
             except:
                 game_state['player_ids'][1] = None
-        query.answer()
+        await query.answer()
         return
 
     player_index = -1
@@ -177,7 +177,7 @@ def on_cf_action(update: Update, context: CallbackContext):
             break
 
     if player_index != game_state["current_turn"] or game_state["winner"] is not None:
-        query.answer()
+        await query.answer()
         return
     
     prev_game_state = json.loads(json.dumps(game_state))
@@ -190,7 +190,7 @@ def on_cf_action(update: Update, context: CallbackContext):
             game_state['board'][row_i][col_index] = player_index
             break
     if row_index == -1:
-        query.answer(f'Столбец {col_index + 1} уже заполнен!')
+        await query.answer(f'Столбец {col_index + 1} уже заполнен!')
         return
 
     if check_win_condition_on_cell(game_state, row_index, col_index):
@@ -231,7 +231,7 @@ def on_cf_action(update: Update, context: CallbackContext):
             game_state["current_turn"] = (game_state["current_turn"] + 1) % 2
 
     if game_state["winner"] is not None:
-        edit_res = try_edit(query, game_state, None)
+        edit_res = await try_edit(query, game_state, None)
         if edit_res:
             games_data.remove(game_state)
         else:
@@ -239,26 +239,26 @@ def on_cf_action(update: Update, context: CallbackContext):
                 if state == game_state:
                     games_data[index] = prev_game_state
     else:
-        edit_res = try_edit(query, game_state, query.message.reply_markup)
+        edit_res = await try_edit(query, game_state, query.message.reply_markup)
         if not edit_res:
             for index, state in enumerate(games_data):
                 if state == game_state:
                     games_data[index] = prev_game_state
 
 
-def try_edit(query, game_state, reply_markup = None) -> bool:
+async def try_edit(query, game_state, reply_markup = None) -> bool:
     try:
-        query.edit_message_text(text=format_playing_field(game_state), reply_markup=reply_markup)
-        query.answer()
+        await query.edit_message_text(text=format_playing_field(game_state), reply_markup=reply_markup)
+        await query.answer()
         return True
     # On RetryAfter its guaranteed that the message wont be updated. However if we encounter some other weird error then the message is PROBABLY updated so we return true
     except RetryAfter:
-        query.answer("Не получилось обновить игру из-за защиты от спама :(")
+        await query.answer("Не получилось обновить игру из-за защиты от спама :(")
         return False
     except Exception as e:
         #print(traceback.format_exc())
         print(e)
-        query.answer()
+        await query.answer()
         return True
 
 

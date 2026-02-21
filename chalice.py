@@ -13,19 +13,19 @@ from _secrets import lucky_numbers
 r = redis_db.connect()
 logger = logging.getLogger(__name__)
 
-def handle_chalice(update: Update, context: CallbackContext):
+async def handle_chalice(update: Update, context: CallbackContext):
     if (not in_whitelist(update)):
         return
     logger.info(f"[chalice] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
-        update.message.reply_text("Какую чашу будем измерять?", quote=True)
+        await update.message.reply_text("Какую чашу будем измерять?", quote=True)
         return
     user_input = match.group(1)
-    chalice(update, context, user_input)
+    await chalice(update, context, user_input)
 
 
-def chalice(update: Update, context, user_input):
+async def chalice(update: Update, context: CallbackContext, user_input):
     days_limit = 14
     absolute_max = 56
 
@@ -58,7 +58,7 @@ def chalice(update: Update, context, user_input):
     ratio = mention_messages / absolute_max
     if mention_messages == 0:
         reply = random.choice([f"Чаша \"{chalice_title}\"... Абсолютно пуста!", f"В чаше \"{chalice_title}\" нет ни капельки!"])
-        update.message.reply_text(reply, quote=False)
+        await update.message.reply_text(reply, quote=False)
     else:
         formatted_ratio = f"{round(ratio * 100)}%"
         reply = f"Чаша \"{chalice_title}\" заполнена на {formatted_ratio}"
@@ -87,7 +87,7 @@ def chalice(update: Update, context, user_input):
                 user_info = user_info.upper()
             reply += user_info
 
-        update.message.reply_text(reply, quote=False)
+        await update.message.reply_text(reply, quote=False)
 
 
 def subscribe(u: Updater):

@@ -97,7 +97,7 @@ def _score_generated_text(t: str, prev_result_tokens: List[List[str]]) -> float:
     return prev_sim_score + len_score
 
 
-def markovpost(update: Update, context, biased_chain=None, previous_results=[]):
+async def markovpost(update: Update, context: CallbackContext, biased_chain=None, previous_results=[]):
     if not in_whitelist(update):
         return
     logger.info(f"[markov] {update.message.text}")
@@ -108,7 +108,7 @@ def markovpost(update: Update, context, biased_chain=None, previous_results=[]):
         logger.info(f"[markov] Refreshing the model created on {markov_chain_timestamp}")
         markov_chain, markov_chain_timestamp = None, None
     if markov_chain is None:
-        update.message.reply_text("Сначала я должен вспомнить всё... Подожди минутку", quote=True)
+        await update.message.reply_text("Сначала я должен вспомнить всё... Подожди минутку", quote=True)
         markov_chain = _create_chain_from_messages()
         markov_chain_timestamp = datetime.now()
         logger.info(f"[markov] Initialized model with {len(markov_chain.chain.model)} states")
@@ -116,15 +116,15 @@ def markovpost(update: Update, context, biased_chain=None, previous_results=[]):
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
         text = markov_chain.make_sentence(max_words=MAX_WORDS_PER_TEXT, tries=MAX_TEXT_GEN_TRIES)
-        update.message.reply_text(text, quote=False)
+        await update.message.reply_text(text, quote=False)
     else:
         query = match.group(1).lower()
         if re.search(r'\s', query):
-            update.message.reply_text(f"Я не умею шутить больше чем про одну вещь за раз >.< Выбери какое-нибудь одно слово", quote=True)
+            await update.message.reply_text(f"Я не умею шутить больше чем про одну вещь за раз >.< Выбери какое-нибудь одно слово", quote=True)
             return
         if biased_chain is None:
             if (biased_chain := _create_biased_chain(markov_chain, query)) is None:
-                update.message.reply_text(f'Дружище, я рад, что тебя так забавляет "{query}", но я ничего смешного в этом не увидел...', quote=False)
+                await update.message.reply_text(f'Дружище, я рад, что тебя так забавляет "{query}", но я ничего смешного в этом не увидел...', quote=False)
                 return
 
         texts = []
@@ -142,9 +142,9 @@ def markovpost(update: Update, context, biased_chain=None, previous_results=[]):
             text, text_try = texts[0]
             if again_setter:
                 again_setter(lambda: markovpost(update, context, biased_chain, previous_results + [text]))
-            update.message.reply_text(f"Прикол #{text_try}{lucky_numbers.get(text_try, '')}. {text.capitalize()}", quote=False)
+            await update.message.reply_text(f"Прикол #{text_try}{lucky_numbers.get(text_try, '')}. {text.capitalize()}", quote=False)
         else:
-            update.message.reply_text(f'Что-то я ничего смешного про "{query}" не придумал...', quote=False)
+            await update.message.reply_text(f'Что-то я ничего смешного про "{query}" не придумал...', quote=False)
 
 
 def subscribe(u: Updater, _again_setter):
