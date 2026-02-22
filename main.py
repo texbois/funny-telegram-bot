@@ -1,9 +1,9 @@
-from _secrets import secrets_bot_token, banned_user_ids
+from _secrets import secrets_bot_token, banned_user_ids, secrets_chat_ids
 import logging
 import logging.handlers
 import traceback
 from telegram import Update
-from telegram.ext import Application, ApplicationBuilder, CallbackContext, CommandHandler, filters, MessageHandler
+from telegram.ext import Application, ApplicationBuilder, ApplicationHandlerStop, CallbackContext, CommandHandler, filters, MessageHandler, TypeHandler
 from telegram.constants import ParseMode
 import re
 import json
@@ -22,7 +22,7 @@ import mentions
 import opinion
 import chalice
 import uptime
-from utils import in_whitelist, PUNCTUATION_REGEX, parse_userid
+from utils import PUNCTUATION_REGEX, parse_userid
 import difflib
 
 rfh = logging.handlers.RotatingFileHandler(filename='debug.log', mode='w', maxBytes=2*1024*1024, backupCount=0,)
@@ -45,13 +45,23 @@ RND_GET_PREFIX =  "#!/RandomizedGet"
 again_function = None
 
 
+async def whitelist_gate(update: Update, context) -> None:
+    # Updates without an effective_chat (like inline queries) pass through ungated
+    if update.effective_chat is not None and update.effective_chat.id not in secrets_chat_ids:
+        logger.warning(f"Chat not whitelisted: {update.effective_chat.id}")
+        # Bots have a global limit of 30 messages per second
+        # https://core.telegram.org/bots/faq#broadcasting-to-users
+        # We don't want to enable ddos attacks for blacklisted chats so we don't message them anything
+        if False:
+            await update.effective_message.reply_text("This chat is not whitelisted")
+        raise ApplicationHandlerStop
+
+
 async def ping(update: Update, context: CallbackContext):
     await update.message.reply_text("Понг!", do_quote=True)
 
 
 async def test(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     await update.message.reply_text("Looking cool joker!", do_quote=False)
     #print(update.message.link)
     #print(update.message.reply_to_message)
@@ -74,8 +84,6 @@ async def contribute(update: Update, context: CallbackContext):
 
 
 async def getDict(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[getDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if (match == None):
@@ -83,15 +91,13 @@ async def getDict(update: Update, context: CallbackContext):
         return
     key = match.group(1).strip()
     key, val = get_close_value_by_key(key)
-        
+
     if val is None:
         await update.message.reply_text("Не помню такого", do_quote=True)
         return
     await send_get_value(update, key, val, show_header=True)
 
 async def rand_get(update: Update, context: CallbackContext, previous_results=[]):
-    if not in_whitelist(update):
-        return
     logger.info(f"[rand_get] {update.message.text}")
     match = re.match(r'/[\S]+\s+([\S]+)', update.message.text)
     if match is None:
@@ -120,8 +126,6 @@ async def rand_get(update: Update, context: CallbackContext, previous_results=[]
 
 
 async def rawGetDict(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info(f"[rawGetDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
@@ -209,8 +213,6 @@ async def send_get_value(update: Update, key: str, val, show_header, recursion_l
 
 
 async def rndSetDict(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info(f"[rndSetDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+([\S]+)\s+(.+)', update.message.text, re.DOTALL)
     if match is None:
@@ -230,8 +232,6 @@ async def rndSetDict(update: Update, context: CallbackContext):
 
 
 async def setDict(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[setDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+([\S]+)\s+(.+)', update.message.text, re.DOTALL)
     set_as_link = False
@@ -315,8 +315,6 @@ async def send_confirm_set_value(update: Update, key: str, old_value, set_as_lin
 
 
 async def delDict(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[delDict] {update.message.text}")
     match = re.match(r'/[\S]+\s+([\S]+)', update.message.text)
     if (match == None):
@@ -348,8 +346,6 @@ def deep_sentence_matches_definition(definition: str, sentence: list) -> int:
 
 
 async def explain(update: Update, context: CallbackContext, previous_results = []):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[explain] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
@@ -424,8 +420,6 @@ async def explain(update: Update, context: CallbackContext, previous_results = [
 
 
 async def talk(update: Update, context: CallbackContext, previous_results=[]):
-    if (not in_whitelist(update)):
-        return
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     user_id = None
     if match == None:
@@ -463,8 +457,6 @@ async def talk(update: Update, context: CallbackContext, previous_results=[]):
 
 
 async def getAll(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info("[getAll]")
     match = re.match(r'/[\S]+\s+([^\s]+)', update.message.text)
     search_string = ""
@@ -494,8 +486,6 @@ async def error(update: object, context: CallbackContext):
 
 
 async def again(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     if again_function:
         try:
             await again_function()
@@ -505,8 +495,6 @@ async def again(update: Update, context: CallbackContext):
         await update.message.reply_text("А что /again? Кажется я все забыл...", do_quote=False)
 
 async def handle_normal_messages(update: Update, context: CallbackContext):
-    if (not in_whitelist(update, send_warning=False)):
-        return
     logger.info(f"[msg] {update.message.text}")
     if (update.message.from_user.id in banned_user_ids):
         logger.info(f"  From banned user {update.message.from_user.id}. Ignored.")
@@ -514,8 +502,6 @@ async def handle_normal_messages(update: Update, context: CallbackContext):
 
 
 async def debug_file_id(update: Update, context: CallbackContext):
-    if (not in_whitelist(update, send_warning=False)):
-        return
     if update.message.sticker is not None:
         logger.info(f"{update.message.sticker.file_id}")
     elif update.message.animation is not None:
@@ -523,8 +509,6 @@ async def debug_file_id(update: Update, context: CallbackContext):
 
 
 async def handle_custom_command(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[custom] {update.message.text}")
     match = re.match(r'(/[^\s@]+)', update.message.text)
     if match is None:
@@ -600,6 +584,8 @@ if __name__ == '__main__':
 
     logger.info("Setting up telegram bot")
     a = ApplicationBuilder().token(secrets_bot_token).post_init(post_init).build()
+
+    a.add_handler(TypeHandler(Update, whitelist_gate), group=-1)
 
     a.add_handler(CommandHandler("ping", ping))
     a.add_handler(CommandHandler("get", getDict))

@@ -1,7 +1,6 @@
 from telegram import Update
 from telegram.ext import Application, CallbackContext, CommandHandler
 import redis_db
-from utils import in_whitelist
 import logging
 from _secrets import lucky_numbers
 import re
@@ -10,8 +9,6 @@ logger = logging.getLogger(__name__)
 r = redis_db.connect()
 
 async def mentions(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[mentions] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match == None:

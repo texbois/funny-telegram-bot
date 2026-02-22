@@ -10,7 +10,6 @@ from telegram import Update
 from telegram.ext import Application, CallbackContext, CommandHandler
 import re
 import redis_db
-from utils import in_whitelist
 from difflib import SequenceMatcher
 
 r = redis_db.connect()
@@ -98,8 +97,6 @@ def _score_generated_text(t: str, prev_result_tokens: List[List[str]]) -> float:
 
 
 async def markovpost(update: Update, context: CallbackContext, biased_chain=None, previous_results=[]):
-    if not in_whitelist(update):
-        return
     logger.info(f"[markov] {update.message.text}")
 
     global markov_chain

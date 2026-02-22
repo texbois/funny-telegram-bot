@@ -3,7 +3,6 @@ from telegram.ext import Application, CallbackContext, CommandHandler
 import random
 import asyncio
 import redis_db
-from utils import in_whitelist
 import logging
 from main import send_get_value, DICTIONARY_HASH, GIF_PREFIX, STICKER_PREFIX
 from opinion import opinion
@@ -12,8 +11,6 @@ logger = logging.getLogger(__name__)
 r = redis_db.connect()
 
 async def random_cope(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     options = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]
     weights = [100, 100, 100, 100, 60, 0.1, 100, 4, 50, 15, 3, 3, 40, 15, 20, 1, 6, 6, 6, 1.5, 1.5, 35, 20, 90, 50, 90, 100, 12, 1, 0.5, 0.5, 0.5, 0.5]
     res = random.choices(options, weights=weights)[0]

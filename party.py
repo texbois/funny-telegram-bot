@@ -1,7 +1,6 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 import redis_db
-from utils import in_whitelist
 from datetime import datetime, timedelta, time
 import logging
 import re
@@ -19,8 +18,6 @@ LAST_TOUCHED_DATETIME = "last_touched_date"
 MAX_PEOPLE_IN_PARTY = 10
 
 async def party_create(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_create]')
 
     match = re.match(r'/[\S]+\s+(.+)\s+([0-9]+)', update.message.text)
@@ -51,8 +48,6 @@ async def party_create(update: Update, context: CallbackContext):
     await update.message.reply_text(f"Команда для игры в {game_name} создана.\nЖду, пока наберется {people_count} человек и пингую", do_quote=False)
 
 async def party_list(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_list]')
 
     parties = r.hgetall(PARTIES)
@@ -71,8 +66,6 @@ async def party_list(update: Update, context: CallbackContext):
     await update.message.reply_text(reply_text, do_quote=False)
 
 async def party_join(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_join]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -84,8 +77,6 @@ async def party_join(update: Update, context: CallbackContext):
 
 
 async def party_delete(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_delete]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -98,8 +89,6 @@ async def party_delete(update: Update, context: CallbackContext):
     await update.message.reply_text(f"Пати для {game_name} удалена... Довольны?", do_quote=False)
 
 async def party_ping_unregister(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_ping_unregister]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -122,8 +111,6 @@ async def party_ping_unregister(update: Update, context: CallbackContext):
     await update.message.reply_text(f"Ты больше не будешь получать уведомления о пати для {game_name}... Пока снова не зайдешь в пати", do_quote=False)
 
 async def party_leave(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_leave]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -148,8 +135,6 @@ async def party_leave(update: Update, context: CallbackContext):
 
 
 async def party_ping_invite(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_ping_invite]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -174,8 +159,6 @@ async def party_ping_invite(update: Update, context: CallbackContext):
 
 
 async def party_ping(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_ping]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)
@@ -194,8 +177,6 @@ async def party_ping(update: Update, context: CallbackContext):
 
 
 async def party_info(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[party_info]')
 
     game_name = await get_game_name_from_msg_if_exists_or_send_error_reply(update)

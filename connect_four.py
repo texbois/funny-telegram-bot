@@ -3,7 +3,7 @@ from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQ
 from telegram.error import RetryAfter
 import redis_db
 import re
-from utils import in_whitelist, parse_userid
+from utils import parse_userid
 import random
 import json
 import logging
@@ -70,8 +70,6 @@ def get_cf_keyboard(pregame: bool = False) -> InlineKeyboardMarkup:
 
 
 async def start_cf(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
         if update.message.reply_to_message is not None:
