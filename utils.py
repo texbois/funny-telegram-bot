@@ -1,5 +1,4 @@
-from _secrets import secrets_chat_ids, user_aliases
-from telegram import Update
+from _secrets import user_aliases
 from telegram.ext import CallbackContext
 import logging
 import random
@@ -10,17 +9,6 @@ logger = logging.getLogger(__name__)
 
 # Don't include apostrophe
 PUNCTUATION_REGEX = re.compile(r'[\s{}]+'.format(re.escape(r'!"#$%&()*+, -./:;<=>?@[\]^_`{|}~')))
-
-def in_whitelist(update: Update, send_warning=True) -> bool:
-    if (update.message.chat_id not in secrets_chat_ids):
-        logger.warn(f"Blacklisted chat id: {update.message.chat_id}")
-        # Bots have a global limit of 30 messages per second
-        # https://core.telegram.org/bots/faq#broadcasting-to-users
-        # We don't want to enable ddos attacks for blacklisted chats so we dont message them anything
-        if False and send_warning:
-             update.message.reply_text("This chat is not whitelisted")
-        return False
-    return True
 
 
 def parse_userid(username: str, context: CallbackContext):

@@ -1,6 +1,5 @@
 from telegram import Update
 from telegram.ext import Application, CallbackContext, CommandHandler
-from utils import in_whitelist
 import logging
 from _secrets import lucky_numbers
 import time
@@ -9,8 +8,6 @@ logger = logging.getLogger(__name__)
 start_time = time.time()
 
 async def uptime(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     now = time.time()
     diff_seconds = now - start_time
     hours = int(diff_seconds // 3600)

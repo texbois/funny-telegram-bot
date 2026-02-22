@@ -4,7 +4,6 @@ from telegram.constants import ParseMode
 from _secrets import jerk_aliases, lucky_numbers
 import random
 import redis_db
-from utils import in_whitelist
 from datetime import datetime, timedelta, time
 import logging
 import asyncio
@@ -26,8 +25,6 @@ def get_daily_jerk_word() -> list:
 
 
 async def jerk_reg(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     # set user id to regs
     logger.info('[jerk_reg]')
     reg_user_id = update.message.from_user.id
@@ -44,8 +41,6 @@ async def jerk_reg(update: Update, context: CallbackContext):
 
 
 async def jerk_unreg(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     logger.info('[jerk_unreg]')
     reg_user_id = update.message.from_user.id
     reg_user_name = update.message.from_user.username
@@ -58,8 +53,6 @@ async def jerk_unreg(update: Update, context: CallbackContext):
 
 
 async def jerk_roll(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info('[jerk_of_the_day]')
     # r.hdel(JERKS_META, 'roll_time')
 
@@ -103,8 +96,6 @@ async def jerk_roll(update: Update, context: CallbackContext):
 
 
 async def get_jerk_stats(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     jerks_dict = {}
     for key in r.hgetall(JERKS):
         winner_username = redis_db.get_username_by_id(key)
@@ -122,8 +113,6 @@ async def get_jerk_stats(update: Update, context: CallbackContext):
 
 
 async def get_jerk_regs(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     players = r.smembers(JERKS_REG_SET)
     if (len(players) == 0):
         await update.message.reply_text(f"Никто не зарегистрировался на {get_daily_jerk_word()[1]} дня...", do_quote=False)

@@ -5,7 +5,7 @@ from telegram.ext import Application, CallbackContext, CommandHandler
 import re
 import random
 import redis_db
-from utils import in_whitelist, parse_userid
+from utils import parse_userid
 
 r = redis_db.connect()
 logger = logging.getLogger(__name__)
@@ -14,8 +14,6 @@ ENDINGS_REGEX = re.compile(r"(?:ах|а|ев|ей|е|ов|о|иях|ия|ие|и
 
 
 async def handle_opinion(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[opinion] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:
@@ -26,8 +24,6 @@ async def handle_opinion(update: Update, context: CallbackContext):
 
 
 async def handle_opinion_of(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[opinionof] {update.message.text}")
     match = re.match(r'/[\S]+\s+([\S]+)\s+(.+)', update.message.text, re.DOTALL)
     if match is None:

@@ -6,7 +6,7 @@ import re
 import random
 import redis_db
 from opinion import ENDINGS_REGEX
-from utils import in_whitelist, parse_userid
+from utils import parse_userid
 from datetime import date, datetime
 from _secrets import lucky_numbers
 
@@ -14,8 +14,6 @@ r = redis_db.connect()
 logger = logging.getLogger(__name__)
 
 async def handle_chalice(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     logger.info(f"[chalice] {update.message.text}")
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if match is None:

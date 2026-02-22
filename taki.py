@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from telegram import CallbackQuery, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import RetryAfter
 from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
-from utils import in_whitelist
 from _secrets import taki_suspects
 import redis_db
 import re
@@ -119,9 +118,6 @@ def get_taki_keyboard(guesses: List[int]) -> InlineKeyboardMarkup:
 
 
 async def takistart(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
-
     # Do not allow starting a new game until the current one is finished (can be abused for stats)
     if len(games_data) > 0 and not games_data[-1].is_finished():
         await update.message.reply_text("Эй, сначала закончи прошлую игру!", reply_to_message_id=games_data[-1].game_message_id.split('/')[1])
@@ -167,8 +163,6 @@ async def takistart(update: Update, context: CallbackContext):
 
 
 async def takistats(update: Update, context: CallbackContext):
-    if not in_whitelist(update):
-        return
     difficulty = DEFAULT_DIFFICULTY
     diff_match = re.match(r'/[\S]+\s+(\d+)', update.message.text)
     if diff_match is not None:

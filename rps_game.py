@@ -3,7 +3,7 @@ from telegram.error import RetryAfter
 from telegram.ext import Application, CallbackContext, CommandHandler, CallbackQueryHandler
 import redis_db
 import re
-from utils import in_whitelist, parse_userid
+from utils import parse_userid
 import random
 import json
 
@@ -66,8 +66,6 @@ def get_rps_keyboard(pregame: bool = False) -> InlineKeyboardMarkup:
 
 
 async def start_rps(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     match = re.match(r'/[\S]+\s+(.+)', update.message.text)
     if (match == None):
         if update.message.reply_to_message is not None:

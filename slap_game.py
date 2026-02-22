@@ -3,7 +3,7 @@ from telegram.ext import Application, CallbackContext, CommandHandler
 from telegram.constants import ParseMode
 import redis_db
 import re
-from utils import in_whitelist, parse_userid
+from utils import parse_userid
 import random
 import json
 from datetime import datetime, timedelta, time
@@ -49,9 +49,6 @@ def is_cooldown_active(cooldown_start_date_str) -> bool:
 
 
 async def slap(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
-
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_MADE_ACTION_DATE)):
         await update.message.reply_text(
@@ -101,8 +98,6 @@ async def slap(update: Update, context: CallbackContext):
 
 
 async def heal(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_MADE_ACTION_DATE)):
         await update.message.reply_text(
@@ -153,9 +148,6 @@ async def heal(update: Update, context: CallbackContext):
         
 
 async def parry(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
-
     stats = get_slap_stats(update.message.from_user.id)
     if is_cooldown_active(stats.get(SS_VULNERABLE_DATE)):
         await update.message.reply_text("Ты уязвим и не можешь парировать", do_quote=True)
@@ -200,8 +192,6 @@ async def parry(update: Update, context: CallbackContext):
 
 
 async def slap_stats(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     slappers_dict = {}
     for key in r.hgetall(SLAP_STATS_HASH):
         username = redis_db.get_username_by_id(key)
@@ -228,8 +218,6 @@ async def slap_stats(update: Update, context: CallbackContext):
 
 
 async def slap_rules(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     rules = "Правила /slap игры.\n" + \
             "Ты можешь шлепнуть любого игрока, отправив /slap и указав другого игрока (по его username или кастомному никнейму). Это снизит его шлеп-счет на 1.\n" + \
             "Когда игрока шлепнули, он может отправить /parry чтобы заблокировать шлепок. Если /parry был отправлен в течение минуты после последнего шлепка, эта атака будет успешно заблокирована и игрок не получит урона.\n" + \
@@ -241,8 +229,6 @@ async def slap_rules(update: Update, context: CallbackContext):
 
 
 async def reset_my_slap(update: Update, context: CallbackContext):
-    if (not in_whitelist(update)):
-        return
     stats = get_slap_stats(update.message.from_user.id)
     stats.pop(SS_MADE_ACTION_DATE, None)
     r.hset(SLAP_STATS_HASH, str(update.message.from_user.id), json.dumps(stats))
