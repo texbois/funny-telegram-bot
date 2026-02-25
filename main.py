@@ -20,6 +20,7 @@ import taki
 import mentions
 import opinion
 import chalice
+import uptime
 from utils import in_whitelist, PUNCTUATION_REGEX, parse_userid
 import difflib
 
@@ -574,6 +575,7 @@ if __name__ == '__main__':
     taki.subscribe(u, again_setter)
     mentions.subscribe(u)
     chalice.subscribe(u)
+    uptime.subscribe(u)
 
 
     u.dispatcher.add_handler(CommandHandler("test", lambda update, context: test(update, context)))
@@ -629,6 +631,7 @@ if __name__ == '__main__':
         ("taki", "[difficulty] play a game of taki"),
         ("takistats", "[difficulty] get all-time stats for taki"),
         ("chalice", "<thing> how full is the chalice of thing?"),
+        ("uptime", "total time I've been running with no sleep")
     ])
 
     logger.info("Started polling for updates")
