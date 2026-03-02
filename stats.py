@@ -56,6 +56,7 @@ async def _glazestats_global(update: Update):
     for i, glazer_id in enumerate(top_glazers, 1):
         message += f"{i}. {get_username_by_id(glazer_id)} {random.choice(glaze_verbs)[0]}:\n"
         message += ''.join(f"* {g}\n" for g in _list_glaze(counts[glazer_id], top_glazees_limit))
+        message += '\n'
 
     await update.message.reply_text(message, do_quote=False, parse_mode=ParseMode.HTML)
 

@@ -43,7 +43,11 @@ def count_emojis(emoji_str: str) -> list[tuple[str, int]]:
 
 def fmt_linked_msg_html(text: str, msg_id: int, chat_id: int) -> str:
     # Supergroup IDs are prefixed with -100, which is stripped in message links
-    msg_link = f'https://t.me/c/{str(chat_id).lstrip("-100")}/{msg_id}'
+    chat_id_str = str(chat_id)
+    if chat_id_str.startswith("-100"):
+        chat_id_str = chat_id_str[4:]
+
+    msg_link = f'https://t.me/c/{chat_id_str}/{msg_id}'
     return f'{html.escape(text)} <a href="{msg_link}">⤴️</a>'
 
 
