@@ -69,25 +69,25 @@ async def _talk_reactions(update: Update, context: CallbackContext, emoji_str: s
         params = tuple(chain(*emoji_params))
 
     rows = db.get().execute(" INTERSECT ".join(subqueries), params)
-    if candidate_msg_ids := {int(row[MR.MSG_ID]) for row in rows} - set(previous_results):
-        msg_id = random.choice(list(candidate_msg_ids))
-        if row := db.get().execute(f"SELECT {M.TEXT} FROM {M.TABLE} WHERE {M.MSG_ID} = ?", (msg_id,)).fetchone():
-            if again_setter:
-                again_setter(lambda: _talk_reactions(update, context, emoji_str, previous_results + [msg_id], from_user_id))
-            await update.message.reply_text(fmt_linked_msg_html(row[M.TEXT], msg_id, update.message.chat_id), do_quote=False, parse_mode=ParseMode.HTML)
-        else:
-            await update.message.reply_text("О нет, я все забыл...", do_quote=False)
+    if candidate_msg_ids := list({int(row[MR.MSG_ID]) for row in rows} - set(previous_results)):
+        random.shuffle(candidate_msg_ids)
+        for msg_id in candidate_msg_ids:
+            if row := db.get().execute(f"SELECT {M.TEXT} FROM {M.TABLE} WHERE {M.MSG_ID} = ?", (msg_id,)).fetchone():
+                if again_setter:
+                    again_setter(lambda: _talk_reactions(update, context, emoji_str, previous_results + [msg_id], from_user_id))
+                await update.message.reply_text(fmt_linked_msg_html(row[M.TEXT], msg_id, update.message.chat_id), do_quote=False, parse_mode=ParseMode.HTML)
+                return
+
+    emoji_display = (("комбо из " if sum(c for _, c in emoji_params) > 1 else "") +
+                        "".join(fmt_emoji_html(e) * min(c, 99) for e, c in emoji_params))
+    if previous_results and from_user_id is not None:
+        await update.message.reply_text(f"Я уже показал все сообщения от {get_username_by_id(from_user_id)}, налутавшие {emoji_display}", do_quote=False, parse_mode=ParseMode.HTML)
+    elif previous_results:
+        await update.message.reply_text(f"Я уже показал все сообщения, налутавшие {emoji_display}", do_quote=False, parse_mode=ParseMode.HTML)
+    elif from_user_id is not None:
+        await update.message.reply_text(f"Да {get_username_by_id(from_user_id)} о {emoji_display} только мечтать может", do_quote=False, parse_mode=ParseMode.HTML)
     else:
-        emoji_display = (("комбо из " if sum(c for _, c in emoji_params) > 1 else "") +
-                         "".join(fmt_emoji_html(e) * min(c, 99) for e, c in emoji_params))
-        if previous_results and from_user_id is not None:
-            await update.message.reply_text(f"Я уже показал все сообщения от {get_username_by_id(from_user_id)}, налутавшие {emoji_display}", do_quote=False, parse_mode=ParseMode.HTML)
-        elif previous_results:
-            await update.message.reply_text(f"Я уже показал все сообщения, налутавшие {emoji_display}", do_quote=False, parse_mode=ParseMode.HTML)
-        elif from_user_id is not None:
-            await update.message.reply_text(f"Да {get_username_by_id(from_user_id)} о {emoji_display} только мечтать может", do_quote=False, parse_mode=ParseMode.HTML)
-        else:
-            await update.message.reply_text(f"Не знаю никого, кто нафармил бы {emoji_display} одним сообщением", do_quote=False, parse_mode=ParseMode.HTML)
+        await update.message.reply_text(f"Не знаю никого, кто нафармил бы {emoji_display} одним сообщением", do_quote=False, parse_mode=ParseMode.HTML)
 
 
 async def handle_talk(update: Update, context: CallbackContext):
