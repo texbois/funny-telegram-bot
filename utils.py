@@ -27,6 +27,11 @@ def fmt_emoji_html(emoji: str) -> str:
 # Count repeated emojis as well as emojis followed by a multiplier
 # Example: given "😁😈2" or "😁😈😈", the result is [('😁', 1), ('😈', 2)]
 def count_emojis(emoji_str: str) -> list[tuple[str, int]]:
+    # Some reaction emojis are different from emojis you get in messages
+    # in particular they seem to lack a \uFE0F character that you would usually see in a normal emoji
+    # So this hack normalizes emojis from messages into their reaction form
+    emoji_str = emoji_str.replace('\uFE0F', '')
+
     result = Counter()
     for m in regex.finditer(
         r'(?:<tg-emoji emoji-id="(\d+)">.*?</tg-emoji>|((?!\d|\s)\X))(\d*)',

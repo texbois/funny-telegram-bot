@@ -67,10 +67,17 @@ async def _glazestats_user(update: Update, user_id: int):
     glazing = counts[user_id]
     glazed_by = {glazer_id: glazees[user_id] for glazer_id, glazees in counts.items() if user_id in glazees}
 
-    message = f"Последнее время, {get_username_by_id(user_id)} больше всего {random.choice(glaze_verbs)[0]}:\n"
-    message += ''.join(f"{i}) {g}\n" for i, g in enumerate(_list_glaze(glazing, top_limit), 1))
-    message += f"\nА {random.choice(glaze_verbs)[1]} {get_username_by_id(user_id)} в свою очередь больше всего:\n"
-    message += ''.join(f"{i}) {g}\n" for i, g in enumerate(_list_glaze(glazed_by, top_limit), 1))
+    glaze_list = _list_glaze(glazing, top_limit)
+    glazed_by_list = _list_glaze(glazed_by, top_limit)
+
+    if len(glaze_list) > 0:
+        message = f"Последнее время, {get_username_by_id(user_id)} больше всего {random.choice(glaze_verbs)[0]}:\n"
+        message += ''.join(f"{i}. {g}\n" for i, g in enumerate(glaze_list, 1))
+    else:
+        message = f"{get_username_by_id(user_id)} последнее время никому не ставит реакты...\n"
+    if len(glazed_by_list) > 0:
+        message += f"\nА {random.choice(glaze_verbs)[1]} {get_username_by_id(user_id)} в свою очередь больше всего:\n"
+        message += ''.join(f"{i}. {g}\n" for i, g in enumerate(glazed_by_list, 1))
 
     await update.message.reply_text(message, do_quote=False, parse_mode=ParseMode.HTML)
 

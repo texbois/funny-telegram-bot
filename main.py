@@ -2,7 +2,7 @@ from _secrets import secrets_bot_token, banned_user_ids, secrets_chat_ids
 import logging
 import logging.handlers
 import traceback
-from telegram import Update, ReactionTypeEmoji
+from telegram import Update, ReactionTypeEmoji, ReactionTypeCustomEmoji, ReactionType
 from telegram.ext import Application, ApplicationBuilder, ApplicationHandlerStop, CallbackContext, CommandHandler, filters, MessageHandler, TypeHandler, MessageReactionHandler
 from telegram.constants import ParseMode
 import re
@@ -483,8 +483,17 @@ async def handle_reactions(update: Update, context: CallbackContext):
     if update.message_reaction is None or update.message_reaction.user is None:
         return
     if update.message_reaction.user.id not in banned_user_ids:
-        old = {r.emoji for r in update.message_reaction.old_reaction if isinstance(r, ReactionTypeEmoji)}
-        new = {r.emoji for r in update.message_reaction.new_reaction if isinstance(r, ReactionTypeEmoji)}
+        def get_reaction_set(reactions: tuple[ReactionType, ...]) -> set[str]:
+            result: set[str] = set()
+            for r in reactions:
+                if isinstance(r, ReactionTypeEmoji):
+                    result.add(r.emoji)
+                elif isinstance(r, ReactionTypeCustomEmoji):
+                    result.add(r.custom_emoji_id)
+            return result
+
+        old = get_reaction_set(update.message_reaction.old_reaction)
+        new = get_reaction_set(update.message_reaction.new_reaction)
         user_id = update.message_reaction.user.id
         ts = int(update.message_reaction.date.timestamp())
         db.get().record_reaction(update.message_reaction.message_id, user_id, ts, new - old, old - new)
@@ -583,6 +592,7 @@ if __name__ == '__main__':
     logger.info("Setting up telegram bot")
     a = ApplicationBuilder().token(secrets_bot_token).post_init(post_init).build()
 
+    logger.info("Setting up command handlers")
     a.add_handler(TypeHandler(Update, whitelist_gate), group=-1)
 
     a.add_handler(MessageReactionHandler(handle_reactions))

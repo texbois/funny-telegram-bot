@@ -79,7 +79,7 @@ async def _talk_reactions(update: Update, context: CallbackContext, emoji_str: s
             await update.message.reply_text("О нет, я все забыл...", do_quote=False)
     else:
         emoji_display = (("комбо из " if sum(c for _, c in emoji_params) > 1 else "") +
-                         "".join(fmt_emoji_html(e) * c for e, c in emoji_params))
+                         "".join(fmt_emoji_html(e) * min(c, 99) for e, c in emoji_params))
         if previous_results and from_user_id is not None:
             await update.message.reply_text(f"Я уже показал все сообщения от {get_username_by_id(from_user_id)}, налутавшие {emoji_display}", do_quote=False, parse_mode=ParseMode.HTML)
         elif previous_results:
