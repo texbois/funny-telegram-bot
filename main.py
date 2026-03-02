@@ -28,6 +28,7 @@ import talk
 import stats
 from utils import PUNCTUATION_REGEX, fill_usernames
 import difflib
+import time
 
 rfh = logging.handlers.RotatingFileHandler(filename='debug.log', mode='w', maxBytes=2*1024*1024, backupCount=0,)
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
@@ -483,12 +484,15 @@ def bot_has_reaction(message_id: int, bot_id: int) -> bool:
     reaction = db.get().execute(f"SELECT {MR.MSG_ID}, {MR.EMOJI} FROM {MR.TABLE} WHERE {MR.MSG_ID}=? AND {MR.USER_ID}=?", (message_id, bot_id)).fetchone()
     return reaction is not None
 
+last_auto_react_time: float = 0
 
 async def handle_reactions(update: Update, context: CallbackContext):
     if update.message_reaction is None or update.message_reaction.user is None:
         return
-    
+
+    global last_auto_react_time
     auto_react_chance = 0.001 # 1 in 1000
+    auto_react_cooldown = 60 * 10 # 10 minutes
     approved_auto_react_emojis = ["😁", "🔥", "🎉", "🐳", "🌭", "🏆", "🍓", "💋", "😈", "👨‍💻", "🎅", "🎄", "☃", "💅", "👾",]
     if update.message_reaction.user.id not in banned_user_ids:
         def get_reaction_set(reactions: tuple[ReactionType, ...]) -> set[str]:
@@ -512,8 +516,11 @@ async def handle_reactions(update: Update, context: CallbackContext):
         bot = context.bot
         if isinstance(bot, Bot):
             auto_react_emoji = list(added)[0] if len(added) > 0 else None
-            if random.random() < auto_react_chance and auto_react_emoji and auto_react_emoji in approved_auto_react_emojis and not bot_has_reaction(msg_id, bot.id):
+            now = time.time()
+            diff_seconds = now - last_auto_react_time
+            if random.random() < auto_react_chance and diff_seconds > auto_react_cooldown and auto_react_emoji and auto_react_emoji in approved_auto_react_emojis  and not bot_has_reaction(msg_id, bot.id):
                 logger.info(f"Auto reacting with {auto_react_emoji} to {msg_id}")
+                last_auto_react_time = now
                 await bot.set_message_reaction(update.message_reaction.chat.id, msg_id, auto_react_emoji)
                 db.get().record_reaction(msg_id, bot.id, ts, set(auto_react_emoji), set())
     else:
