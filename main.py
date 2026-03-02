@@ -2,7 +2,7 @@ from _secrets import secrets_bot_token, banned_user_ids, secrets_chat_ids
 import logging
 import logging.handlers
 import traceback
-from telegram import Update, ReactionTypeEmoji, ReactionTypeCustomEmoji, ReactionType
+from telegram import Update, ReactionTypeEmoji, ReactionTypeCustomEmoji, ReactionType, Bot
 from telegram.ext import Application, ApplicationBuilder, ApplicationHandlerStop, CallbackContext, CommandHandler, filters, MessageHandler, TypeHandler, MessageReactionHandler
 from telegram.constants import ParseMode
 import re
@@ -18,7 +18,7 @@ import hangman
 import random_cope
 import redis_db
 import db
-from db import M
+from db import M, MR
 import taki
 import mentions
 import opinion
@@ -479,9 +479,17 @@ async def handle_normal_messages(update: Update, context: CallbackContext):
         logger.info(f"  From banned user {update.message.from_user.id}. Ignored.")
 
 
+def bot_has_reaction(message_id: int, bot_id: int) -> bool:
+    reaction = db.get().execute(f"SELECT {MR.MSG_ID}, {MR.EMOJI} FROM {MR.TABLE} WHERE {MR.MSG_ID}=? AND {MR.USER_ID}=?", (message_id, bot_id)).fetchone()
+    return reaction is not None
+
+
 async def handle_reactions(update: Update, context: CallbackContext):
     if update.message_reaction is None or update.message_reaction.user is None:
         return
+    
+    auto_react_chance = 0.001 # 1 in 1000
+    approved_auto_react_emojis = ["😁", "🔥", "🎉", "🐳", "🌭", "🏆", "🍓", "💋", "😈", "👨‍💻", "🎅", "🎄", "☃", "💅", "👾",]
     if update.message_reaction.user.id not in banned_user_ids:
         def get_reaction_set(reactions: tuple[ReactionType, ...]) -> set[str]:
             result: set[str] = set()
@@ -495,8 +503,19 @@ async def handle_reactions(update: Update, context: CallbackContext):
         old = get_reaction_set(update.message_reaction.old_reaction)
         new = get_reaction_set(update.message_reaction.new_reaction)
         user_id = update.message_reaction.user.id
+        msg_id = update.message_reaction.message_id
         ts = int(update.message_reaction.date.timestamp())
-        db.get().record_reaction(update.message_reaction.message_id, user_id, ts, new - old, old - new)
+        added = new - old
+        removed = old - new
+        db.get().record_reaction(msg_id, user_id, ts, added, removed)
+
+        bot = context.bot
+        if isinstance(bot, Bot):
+            auto_react_emoji = list(added)[0] if len(added) > 0 else None
+            if random.random() < auto_react_chance and auto_react_emoji and auto_react_emoji in approved_auto_react_emojis and not bot_has_reaction(msg_id, bot.id):
+                logger.info(f"Auto reacting with {auto_react_emoji} to {msg_id}")
+                await bot.set_message_reaction(update.message_reaction.chat.id, msg_id, auto_react_emoji)
+                db.get().record_reaction(msg_id, bot.id, ts, set(auto_react_emoji), set())
     else:
         logger.info(f"  Reaction from banned user {update.message_reaction.user.id}. Ignored.")
 
