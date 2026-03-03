@@ -480,10 +480,6 @@ async def handle_normal_messages(update: Update, context: CallbackContext):
         logger.info(f"  From banned user {update.message.from_user.id}. Ignored.")
 
 
-def bot_has_reaction(message_id: int, bot_id: int) -> bool:
-    reaction = db.get().execute(f"SELECT {MR.MSG_ID}, {MR.EMOJI} FROM {MR.TABLE} WHERE {MR.MSG_ID}=? AND {MR.USER_ID}=?", (message_id, bot_id)).fetchone()
-    return reaction is not None
-
 last_auto_react_time: float = 0
 
 async def handle_reactions(update: Update, context: CallbackContext):
@@ -491,6 +487,16 @@ async def handle_reactions(update: Update, context: CallbackContext):
         return
 
     global last_auto_react_time
+
+
+    def bot_has_no_reaction(message_id: int, bot_id: int) -> bool:
+        reaction = db.get().execute(f"SELECT {MR.MSG_ID}, {MR.EMOJI} FROM {MR.TABLE} WHERE {MR.MSG_ID}=? AND {MR.USER_ID}=?", (message_id, bot_id)).fetchone()
+        return reaction is None
+
+    def is_message_not_from_bot(message_id: int, bot_id: int) -> bool:
+        msg = db.get().execute(f"SELECT {M.MSG_ID}, {M.USER_ID} FROM {M.TABLE} WHERE {M.MSG_ID}=?", (message_id,)).fetchone()
+        return msg and msg[M.USER_ID] != bot_id
+
     auto_react_chance = 0.001 # 1 in 1000
     auto_react_cooldown = 60 * 10 # 10 minutes
     approved_auto_react_emojis = ["😁", "🔥", "🎉", "🐳", "🌭", "🏆", "🍓", "💋", "😈", "👨‍💻", "🎅", "🎄", "☃", "💅", "👾",]
@@ -518,7 +524,11 @@ async def handle_reactions(update: Update, context: CallbackContext):
             auto_react_emoji = list(added)[0] if len(added) > 0 else None
             now = time.time()
             diff_seconds = now - last_auto_react_time
-            if random.random() < auto_react_chance and diff_seconds > auto_react_cooldown and auto_react_emoji and auto_react_emoji in approved_auto_react_emojis  and not bot_has_reaction(msg_id, bot.id):
+            if (
+                random.random() < auto_react_chance and diff_seconds > auto_react_cooldown
+                and auto_react_emoji and auto_react_emoji in approved_auto_react_emojis
+                and bot_has_no_reaction(msg_id, bot.id) and is_message_not_from_bot(msg_id, bot.id)
+            ):
                 logger.info(f"Auto reacting with {auto_react_emoji} to {msg_id}")
                 last_auto_react_time = now
                 await bot.set_message_reaction(update.message_reaction.chat.id, msg_id, auto_react_emoji)
