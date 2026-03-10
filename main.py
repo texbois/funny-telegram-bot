@@ -517,6 +517,7 @@ async def handle_reactions(update: Update, context: CallbackContext):
         ts = int(update.message_reaction.date.timestamp())
         added = new - old
         removed = old - new
+        logger.info(f"New reactions: {added}, removed reactions: {removed} for msg {msg_id}")
         db.get().record_reaction(msg_id, user_id, ts, added, removed)
 
         bot = context.bot
